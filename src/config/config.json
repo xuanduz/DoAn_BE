@@ -2,7 +2,7 @@
   "development": {
     "username": "root",
     "password": "123456",
-    "database": "demo_node",
+    "database": "health_check",
     "host": "localhost",
     "dialect": "mysql",
     "logging": false
