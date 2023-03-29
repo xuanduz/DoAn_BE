@@ -15,6 +15,7 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: "doctor_clinic_specialty",
+      freezeTableName: true,
     }
   );
   return Doctor_Clinic_Specialty;

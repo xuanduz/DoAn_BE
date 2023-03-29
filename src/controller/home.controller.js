@@ -1,4 +1,4 @@
-import db from "../models";
+import db from "../models/index";
 import CRUDService from "../services/CRUDService";
 
 let getHomePage = async (req, res) => {
@@ -14,6 +14,7 @@ let getHomePage = async (req, res) => {
 
 let getAllUser = async (req, res) => {
   try {
+    console.log(">>> get all");
     let data = await db.User.findAll();
     return res.status(200).json({
       message: "success",
@@ -27,7 +28,7 @@ let getAllUser = async (req, res) => {
 };
 
 let addNewUser = async (req, res) => {
-  let message = await CRUDService.addNewUser(req.body);
+  let message = await CRUDService.createNewUser(req.body);
   console.log(">>> message", message);
   return res.status(200).json({
     message: "success",

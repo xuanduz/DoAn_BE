@@ -5,6 +5,9 @@ const sequelize = new Sequelize("health_check", "root", "123456", {
   host: "localhost",
   dialect: "mysql",
   logging: false,
+  define: {
+    freezeTableName: true,
+  },
 });
 
 const connectDB = async () => {

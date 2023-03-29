@@ -35,7 +35,7 @@ module.exports = {
       image: {
         type: Sequelize.STRING,
       },
-      roleid: {
+      roleId: {
         type: Sequelize.STRING,
       },
       positionId: {

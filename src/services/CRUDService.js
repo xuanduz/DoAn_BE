@@ -1,4 +1,28 @@
 import db from "../models";
+import bcrypt from "bcryptjs";
+
+var salt = bcrypt.genSaltSync(10);
+
+let hashPassword = (password) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      var hashedPassword = await bcrypt.hashSync(password, salt);
+      resolve(hashedPassword);
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
+
+let createNewUser = async (data) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      let hashedPassword = await hashPassword(data.password);
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
 
 let getHomePage = async (req, res) => {
   try {
@@ -89,4 +113,5 @@ module.exports = {
   addNewUser: addNewUser,
   editUser: editUser,
   getUserById: getUserById,
+  createNewUser: createNewUser,
 };
