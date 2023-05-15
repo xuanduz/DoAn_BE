@@ -3,14 +3,20 @@ const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class Specialty extends Model {
     static associate(models) {
-      // define association here
+      Specialty.belongsToMany(models.Doctor, {
+        through: "doctor_specialty",
+        foreignKey: "specialtyId",
+        as: "doctorData",
+        // otherKey: "doctorId",
+      });
     }
   }
   Specialty.init(
     {
       name: DataTypes.STRING,
-      description: DataTypes.TEXT,
       image: DataTypes.TEXT,
+      describe: DataTypes.STRING,
+      descriptionHTML: DataTypes.TEXT,
     },
     {
       sequelize,

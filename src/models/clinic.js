@@ -3,15 +3,20 @@ const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class Clinic extends Model {
     static associate(models) {
-      // define association here
+      Clinic.hasMany(models.Doctor, {
+        foreignKey: "clinicId",
+        as: "doctorData",
+      });
     }
   }
   Clinic.init(
     {
-      address: DataTypes.STRING,
-      description: DataTypes.TEXT,
-      image: DataTypes.STRING,
       name: DataTypes.STRING,
+      provinceKey: DataTypes.STRING,
+      address: DataTypes.STRING,
+      image: DataTypes.TEXT,
+      descriptionHTML: DataTypes.TEXT,
+      describe: DataTypes.STRING,
     },
     {
       sequelize,

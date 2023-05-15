@@ -1,30 +1,26 @@
 "use strict";
 const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
-  class User extends Model {
-    static associate(models) {
-      // define association here
-    }
+  class Admin extends Model {
+    static associate(models) {}
   }
-  User.init(
+  Admin.init(
     {
       email: DataTypes.STRING,
       password: DataTypes.STRING,
-      firstName: DataTypes.STRING,
-      lastName: DataTypes.STRING,
+      fullName: DataTypes.STRING,
       address: DataTypes.STRING,
       gender: DataTypes.BOOLEAN,
-      age: DataTypes.INTEGER,
       phoneNumber: DataTypes.STRING,
-      image: DataTypes.STRING,
-      roleId: DataTypes.STRING,
-      positionId: DataTypes.STRING,
+
+      accessToken: DataTypes.STRING,
+      refreshToken: DataTypes.STRING,
     },
     {
       sequelize,
-      modelName: "User",
+      modelName: "Admin",
       freezeTableName: true,
     }
   );
-  return User;
+  return Admin;
 };

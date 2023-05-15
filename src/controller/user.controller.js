@@ -38,6 +38,11 @@ const handleCreateNewUser = async (req, res) => {
   // }
 };
 
+const handleEditUser = async (req, res) => {
+  let userUpdated = await userService.updateUser(req.body);
+  return res.status(200).json(userUpdated);
+};
+
 module.exports = {
   handleLogin: handleLogin,
   handleCreateNewUser: handleCreateNewUser,

@@ -17,7 +17,7 @@ module.exports = {
       date: {
         type: Sequelize.DATE,
       },
-      timeType: {
+      timeSlot: {
         type: Sequelize.STRING,
       },
       doctorId: {

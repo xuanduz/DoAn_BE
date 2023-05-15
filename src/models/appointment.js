@@ -3,16 +3,26 @@ const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class Appointment extends Model {
     static associate(models) {
-      // define association here
+      Appointment.belongsTo(models.Patient, {
+        foreignKey: "patientId",
+        as: "patientData",
+      });
+      Appointment.belongsTo(models.Doctor, {
+        foreignKey: "doctorId",
+        as: "doctorData",
+      });
     }
   }
   Appointment.init(
     {
-      statusId: DataTypes.STRING,
       doctorId: DataTypes.INTEGER,
       patientId: DataTypes.INTEGER,
+      statusKey: DataTypes.STRING,
       date: DataTypes.DATE,
-      timeType: DataTypes.STRING,
+      timeSlot: DataTypes.STRING,
+      reason: DataTypes.STRING,
+      bookingType: DataTypes.STRING,
+      resultFile: DataTypes.BLOB("long"),
     },
     {
       sequelize,

@@ -1,0 +1,20 @@
+export const Label = {
+  CREATE_ACCOUNT_SUCCESS: "Tạo tài khoản thành công",
+  EXISTED_ACCOUNT: "Tài khoản đã tồn tại",
+  EXISTED_EMAIL: "Email đã tồn tại",
+  NOT_EXISTED_ACCOUNT: "Tài khoản không tồn tại",
+  WRONG_LOGIN: "Sai tài khoản hoặc mật khẩu. Vui lòng kiểm tra lại",
+  UPDATE_SUCCESS: "Cập nhật thành công",
+  DELETE_POST_SUCCESS: "Xoá bài viết thành công",
+  SUCCESS: "Thành công",
+  DELETE_SUCCESS: "Xoá thành công",
+  WRONG_PASSWORD: "Sai mật khẩu",
+  WRONG_PASSWORD_OR_EMAIL: "Sai email hoặc mật khẩu",
+  CHANGE_PASSWORD_SUCCESS: "Đổi mật khẩu thành công",
+  LOGIN_SUCCESS: "Đăng nhập thành công",
+  BOOKING_SUCCESS: "Đặt lịch hẹn thành công",
+  BOOKING_FAIL: "Đặt lịch hẹn không thành công",
+  BOOKING_FAIL_NOT_EXIST_DOCTOR:
+    "Đặt lịch hẹn không thành công do bác sĩ bạn chọn không còn tồn tại, vui lòng chọn bác sĩ khác",
+  NOT_EXIST_APPOINTMENT: "Không tồn tại lịch hẹn",
+};
