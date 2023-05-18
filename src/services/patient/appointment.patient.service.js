@@ -1,6 +1,7 @@
 import db from "../../models";
 import { Label } from "../../utils/labels/label";
 const { Op } = require("sequelize");
+import moment from "moment";
 
 const booking = async (bookingData) => {
   return new Promise(async (resolve, reject) => {
@@ -9,11 +10,20 @@ const booking = async (bookingData) => {
         patientId,
         doctorId,
         date,
+        time,
         timeSlot,
         reason,
         statusKey,
         bookingType,
       } = bookingData;
+      let dateNow = new Date();
+      let currentDate = moment().format("DD-MM-YYYY");
+      let currentHour = `${dateNow.getHours()}:${dateNow.getMinutes()}`;
+      let timeNow = moment(
+        `${currentDate} ${currentHour}`,
+        "DD-MM-YYYY hh:mm"
+      ).toDate();
+
       const timeType = await db.Code.findOne({
         where: {
           type: "TIME",
@@ -35,7 +45,8 @@ const booking = async (bookingData) => {
       } else {
         await db.Appointment.create({
           statusKey: statusKey || "S1",
-          date: date || new Date().toISOString().slice(0, 19).replace("T", " "),
+          date: date,
+          time: time,
           patientId: patientId,
           doctorId: doctorId,
           timeSlot: timeType.key,

@@ -4,7 +4,7 @@ import { generateTokens, verifyRefreshToken } from "../../utils/auth/token";
 import { Label } from "../../utils/labels/label";
 
 const resetToken = async (email) => {
-  await db.Patient.update(
+  await db.Doctor.update(
     {
       refreshToken: null,
       accessToken: null,
@@ -16,21 +16,24 @@ const resetToken = async (email) => {
 const createNewAccount = async (data) => {
   return new Promise(async (resolve, reject) => {
     try {
-      let accountExisted = await db.Patient.findOne({
+      let accountExisted = await db.Doctor.findOne({
         where: { email: data.email },
       });
       let response = {};
       if (!accountExisted) {
         let hashedPassword = await Bcryptjs.hashPassword(data.password);
-        await db.Patient.create({
+        await db.Doctor.create({
           email: data.email,
           password: hashedPassword,
           fullName: data.fullName,
-          addressDetail: data.addressDetail,
-          provinceKey: data.provinceKey,
           gender: data.gender,
           phoneNumber: data.phoneNumber,
-          birthday: data.birthday,
+          image: data.image,
+          addressDetail: data.addressDetail,
+          provinceKey: data.provinceKey,
+          positionKey: data.positionKey,
+          price: data.price,
+          clinicId: data.clinicId,
         });
         response = { message: Label.CREATE_ACCOUNT_SUCCESS, success: true };
       } else {
@@ -46,9 +49,9 @@ const createNewAccount = async (data) => {
 const login = async (data) => {
   return new Promise(async (resolve, reject) => {
     try {
-      let account = await db.Patient.findOne({
+      let account = await db.Doctor.findOne({
         where: { email: data.email },
-        nest: true,
+        raw: true,
       });
       let result = {};
       if (account) {
@@ -58,7 +61,7 @@ const login = async (data) => {
         );
         if (comparePassword) {
           let token = generateTokens(account);
-          await db.Patient.update(
+          await db.Doctor.update(
             {
               accessToken: token.accessToken,
               refreshToken: token.refreshToken,
@@ -93,7 +96,7 @@ const login = async (data) => {
 const logout = async (data) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const account = await db.Patient.findOne({
+      const account = await db.Doctor.findOne({
         where: { email: data.email },
       });
       await resetToken(account.email);
@@ -107,7 +110,7 @@ const logout = async (data) => {
 };
 
 const updateRefreshToken = async (email, refreshToken) => {
-  await db.Patient.update(
+  await db.Doctor.update(
     {
       refreshToken: refreshToken,
     },
@@ -119,9 +122,9 @@ const getNewAccessToken = async (req, res) => {
   return new Promise(async (resolve, reject) => {
     try {
       const refreshToken = req.body.refreshToken;
-      const account = await db.Patient.findOne({
+      const account = await db.Doctor.findOne({
         where: { refreshToken: refreshToken },
-        nest: true,
+        raw: true,
       });
       if (!account) {
         resolve(res.sendStatus(403));

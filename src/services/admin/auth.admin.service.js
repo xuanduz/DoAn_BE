@@ -95,7 +95,9 @@ const logout = async (data) => {
         where: { email: data.email },
       });
       await resetToken(account.email);
-      resolve();
+      resolve({
+        success: true,
+      });
     } catch (e) {
       reject(e);
     }

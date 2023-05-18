@@ -11,6 +11,21 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "doctorId",
         as: "doctorData",
       });
+      Appointment.belongsTo(models.Code, {
+        foreignKey: "statusKey",
+        targetKey: "key",
+        as: "statusData",
+      });
+      Appointment.belongsTo(models.Code, {
+        foreignKey: "timeSlot",
+        targetKey: "key",
+        as: "timeData",
+      });
+      Appointment.belongsTo(models.Code, {
+        foreignKey: "bookingType",
+        targetKey: "key",
+        as: "bookingData",
+      });
     }
   }
   Appointment.init(
@@ -18,11 +33,12 @@ module.exports = (sequelize, DataTypes) => {
       doctorId: DataTypes.INTEGER,
       patientId: DataTypes.INTEGER,
       statusKey: DataTypes.STRING,
-      date: DataTypes.DATE,
+      date: DataTypes.STRING,
+      time: DataTypes.STRING,
       timeSlot: DataTypes.STRING,
       reason: DataTypes.STRING,
       bookingType: DataTypes.STRING,
-      resultFile: DataTypes.BLOB("long"),
+      resultFile: DataTypes.STRING,
     },
     {
       sequelize,

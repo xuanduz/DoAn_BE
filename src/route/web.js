@@ -1,14 +1,23 @@
 import express from "express";
-import authAdminController from "../controller/admin/auth.admin.controller";
-import postAdminController from "../controller/admin/post.admin.controller";
-import doctorAdminController from "../controller/admin/doctor.admin.controller";
 import adminController from "../controller/admin/admin.controller";
+import authAdminController from "../controller/admin/auth.admin.controller";
+import doctorAdminController from "../controller/admin/doctor.admin.controller";
+import clinicAdminController from "../controller/admin/clinic.admin.controller";
+import appointmentAdminController from "../controller/admin/appointment.admin.controller";
+
+import patientController from "../controller/patient/patient.controller";
 import doctorPatientController from "../controller/patient/doctor.patient.controller";
 import clinicPatientController from "../controller/patient/clinic.patient.controller";
 import specialtyPatientController from "../controller/patient/specialty.patient.controller";
 import authPatientController from "../controller/patient/auth.patient.controller";
 import appointmentPatientController from "../controller/patient/appointment.patient.controller";
-import patientController from "../controller/patient/patient.controller";
+
+import authDoctorController from "../controller/doctor/auth.doctor.controller";
+import doctorController from "../controller/doctor/doctor.controller";
+import scheduleDoctorController from "../controller/doctor/schedule.doctor.controller";
+import appointmentDoctorController from "../controller/doctor/appointment.doctor.controller";
+
+import appointmentDoctorService from "../services/doctor/appointment.doctor.service";
 
 import { RouteName } from "./route-name";
 import { verifyToken } from "../utils/auth/token";
@@ -44,16 +53,6 @@ let initWebRoutes = (app) => {
   );
 
   router.post(
-    `${RouteName.ADMIN}/doctor/post/edit`,
-    verifyToken,
-    postAdminController.updateDoctorPost
-  );
-  router.delete(
-    `${RouteName.ADMIN}/doctor/post/delete/:id`,
-    verifyToken,
-    postAdminController.deleteDoctorPost
-  );
-  router.post(
     `${RouteName.ADMIN}/doctor/add-new`,
     verifyToken,
     doctorAdminController.addNewDoctor
@@ -78,7 +77,53 @@ let initWebRoutes = (app) => {
     verifyToken,
     doctorAdminController.deleteDoctor
   );
-  //! TODO: Thiếu api Clinic
+
+  router.post(
+    `${RouteName.ADMIN}/clinic/add-new`,
+    verifyToken,
+    clinicAdminController.addNewClinic
+  );
+  router.get(
+    `${RouteName.ADMIN}/clinic/:id`,
+    verifyToken,
+    clinicAdminController.getClinic
+  );
+  router.post(
+    `${RouteName.ADMIN}/clinic/filter`,
+    verifyToken,
+    clinicAdminController.filterClinic
+  );
+  router.post(
+    `${RouteName.ADMIN}/clinic/edit`,
+    verifyToken,
+    clinicAdminController.editClinic
+  );
+  router.delete(
+    `${RouteName.ADMIN}/clinic/:id`,
+    verifyToken,
+    clinicAdminController.deleteClinic
+  );
+
+  router.post(
+    `${RouteName.ADMIN}/appointment/filter`,
+    verifyToken,
+    appointmentAdminController.filterAppointment
+  );
+  router.post(
+    `${RouteName.ADMIN}/appointment/edit`,
+    verifyToken,
+    appointmentAdminController.editAppointment
+  );
+  router.post(
+    `${RouteName.ADMIN}/appointment/status/edit`,
+    verifyToken,
+    appointmentAdminController.editStatus
+  );
+  router.delete(
+    `${RouteName.ADMIN}/appointment/:id`,
+    verifyToken,
+    appointmentAdminController.deleteAppointment
+  );
 
   // ---------------------  Patient  -------------------------
   router.post(`${RouteName.PATIENT}/register`, authPatientController.register);
@@ -110,6 +155,10 @@ let initWebRoutes = (app) => {
     `${RouteName.PATIENT}/doctor/filter`,
     doctorPatientController.filterDoctor
   );
+  router.post(
+    `${RouteName.PATIENT}/doctor/featured/filter`,
+    doctorPatientController.filterFeaturedDoctor
+  );
   router.get(
     `${RouteName.PATIENT}/doctor/:id`,
     doctorPatientController.getDoctor
@@ -119,6 +168,10 @@ let initWebRoutes = (app) => {
     `${RouteName.PATIENT}/clinic/filter`,
     clinicPatientController.filterClinic
   );
+  // router.post(
+  //   `${RouteName.PATIENT}/clinic/featured/filter`,
+  //   clinicPatientController.filterFeaturedClinic
+  // );
   router.get(
     `${RouteName.PATIENT}/clinic/:id`,
     clinicPatientController.getClinic
@@ -152,6 +205,44 @@ let initWebRoutes = (app) => {
   );
 
   //------------------------------------ Doctor --------------------------------
+  router.post(`${RouteName.DOCTOR}/register`, authDoctorController.register);
+  router.post(`${RouteName.DOCTOR}/login`, authDoctorController.login);
+  router.post(
+    `${RouteName.DOCTOR}/token`,
+    authDoctorController.getNewAccessToken
+  );
+  router.delete(
+    `${RouteName.DOCTOR}/logout`,
+    verifyToken,
+    authDoctorController.logout
+  );
+  router.post(
+    `${RouteName.DOCTOR}/change-password`,
+    verifyToken,
+    doctorController.changePasswordDoctor
+  );
+  router.post(
+    `${RouteName.DOCTOR}/schedule/by-date`,
+    verifyToken,
+    scheduleDoctorController.getScheduleByDate
+  );
+  router.post(
+    `${RouteName.DOCTOR}/schedule/create`,
+    verifyToken,
+    scheduleDoctorController.createSchedule
+  );
+
+  router.post(
+    `${RouteName.DOCTOR}/appointment/filter`,
+    verifyToken,
+    appointmentDoctorController.filterAppointment
+  );
+  router.post(
+    `${RouteName.DOCTOR}/appointment/edit`,
+    verifyToken,
+    appointmentDoctorService.uploadFile,
+    appointmentDoctorController.editAppointment
+  );
 
   return app.use("/", router);
 };

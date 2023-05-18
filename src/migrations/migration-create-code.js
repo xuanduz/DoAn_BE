@@ -10,6 +10,7 @@ module.exports = {
       },
       key: {
         type: Sequelize.STRING,
+        unique: true,
       },
       type: {
         type: Sequelize.STRING,

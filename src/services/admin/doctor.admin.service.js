@@ -54,7 +54,7 @@ const getDoctor = async (doctorId) => {
         raw: true,
       });
       let result = {};
-      if (doctorData) {
+      if (!doctorData) {
         result = {
           message: Label.NOT_EXISTED_ACCOUNT,
           success: false,
@@ -98,6 +98,9 @@ const filterDoctor = async (filter) => {
           {
             model: db.Schedule,
             as: "scheduleData",
+            attributes: {
+              exclude: ["createdAt", "updatedAt"],
+            },
           },
           {
             model: db.Specialty,
@@ -107,6 +110,9 @@ const filterDoctor = async (filter) => {
                 [Op.like]: `%${specialtyId ? specialtyId : ""}%`,
               },
             },
+            attributes: {
+              exclude: ["createdAt", "updatedAt"],
+            },
           },
           {
             model: db.Clinic,
@@ -115,6 +121,9 @@ const filterDoctor = async (filter) => {
               id: {
                 [Op.like]: `%${clinicId ? clinicId : ""}%`,
               },
+            },
+            attributes: {
+              exclude: ["email", "createdAt", "updatedAt"],
             },
           },
         ],

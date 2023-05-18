@@ -17,6 +17,48 @@ const filterClinic = async (filter) => {
             [Op.like]: `%${provinceKey ? provinceKey : ""}%`,
           },
         },
+        include: [
+          {
+            model: db.Code,
+            as: "provinceData",
+            // require: false,
+            attributes: {
+              exclude: ["createdAt", "updatedAt"],
+            },
+          },
+        ],
+        attributes: {
+          exclude: ["descriptionHTML"],
+        },
+        nest: true,
+      });
+      resolve({
+        message: Label.SUCCESS,
+        success: true,
+        data: listClinic,
+      });
+    } catch (err) {
+      console.log("err", err);
+      reject();
+    }
+  });
+};
+
+const filterFeaturedClinic = async (filter) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const { pageNum, pageSize, clinicName, provinceKey } = filter;
+      const listClinic = await db.Clinic.findAll({
+        offset: (+pageNum - 1) * +pageSize,
+        limit: +pageSize,
+        where: {
+          name: {
+            [Op.like]: `%${clinicName ? clinicName : ""}%`,
+          },
+          provinceKey: {
+            [Op.like]: `%${provinceKey ? provinceKey : ""}%`,
+          },
+        },
         attributes: {
           exclude: ["descriptionHTML"],
         },
@@ -86,4 +128,5 @@ module.exports = {
   filterClinic: filterClinic,
   getClinic: getClinic,
   getAllClinic: getAllClinic,
+  filterFeaturedClinic: filterFeaturedClinic,
 };

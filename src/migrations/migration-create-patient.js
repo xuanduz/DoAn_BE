@@ -25,7 +25,7 @@ module.exports = {
         type: Sequelize.BOOLEAN,
       },
       birthday: {
-        type: Sequelize.DATE,
+        type: Sequelize.STRING,
       },
       phoneNumber: {
         type: Sequelize.STRING,

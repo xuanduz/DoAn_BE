@@ -1,8 +1,11 @@
 export const Label = {
   CREATE_ACCOUNT_SUCCESS: "Tạo tài khoản thành công",
+  CREATE_CLINIC_SUCCESS: "Tạo cơ sở y tế thành công",
   EXISTED_ACCOUNT: "Tài khoản đã tồn tại",
   EXISTED_EMAIL: "Email đã tồn tại",
   NOT_EXISTED_ACCOUNT: "Tài khoản không tồn tại",
+  NOT_EXISTED_CLINIC: "Cơ sở y tế không tồn tại",
+  NOT_EXISTED_APPOINTMENT: "Lịch hẹn không tồn tại",
   WRONG_LOGIN: "Sai tài khoản hoặc mật khẩu. Vui lòng kiểm tra lại",
   UPDATE_SUCCESS: "Cập nhật thành công",
   DELETE_POST_SUCCESS: "Xoá bài viết thành công",

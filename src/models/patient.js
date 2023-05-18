@@ -7,6 +7,11 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "patientId",
         as: "appointmentData",
       });
+      Patient.belongsTo(models.Code, {
+        foreignKey: "provinceKey",
+        targetKey: "key",
+        as: "provincePatientData",
+      });
     }
   }
   Patient.init(
@@ -15,7 +20,7 @@ module.exports = (sequelize, DataTypes) => {
       password: DataTypes.STRING,
       fullName: DataTypes.STRING,
       gender: DataTypes.BOOLEAN,
-      birthday: DataTypes.DATE,
+      birthday: DataTypes.STRING,
       phoneNumber: DataTypes.STRING,
       provinceKey: DataTypes.STRING,
       addressDetail: DataTypes.STRING,

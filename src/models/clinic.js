@@ -7,11 +7,17 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "clinicId",
         as: "doctorData",
       });
+      Clinic.belongsTo(models.Code, {
+        foreignKey: "provinceKey",
+        targetKey: "key",
+        as: "provinceData",
+      });
     }
   }
   Clinic.init(
     {
       name: DataTypes.STRING,
+      email: DataTypes.STRING,
       provinceKey: DataTypes.STRING,
       address: DataTypes.STRING,
       image: DataTypes.TEXT,

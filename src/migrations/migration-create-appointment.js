@@ -18,13 +18,16 @@ module.exports = {
         type: Sequelize.INTEGER,
       },
       date: {
-        type: Sequelize.DATE,
+        type: Sequelize.STRING,
+      },
+      time: {
+        type: Sequelize.STRING,
       },
       timeSlot: {
         type: Sequelize.STRING,
       },
       resultFile: {
-        type: Sequelize.BLOB("long"),
+        type: Sequelize.STRING,
       },
       reason: {
         type: Sequelize.STRING,

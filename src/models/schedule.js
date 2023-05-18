@@ -8,11 +8,16 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "doctorId",
         as: "doctor",
       });
+      Schedule.belongsTo(models.Code, {
+        foreignKey: "timeSlot",
+        targetKey: "key",
+        as: "timeData",
+      });
     }
   }
   Schedule.init(
     {
-      date: DataTypes.DATE,
+      date: DataTypes.STRING,
       timeSlot: DataTypes.STRING,
       doctorId: DataTypes.INTEGER,
       currentNumber: DataTypes.INTEGER,

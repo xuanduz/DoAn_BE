@@ -7,6 +7,16 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "clinicId",
         as: "clinicData",
       });
+      Doctor.belongsTo(models.Code, {
+        foreignKey: "positionKey",
+        targetKey: "key",
+        as: "positionData",
+      });
+      Doctor.belongsTo(models.Code, {
+        foreignKey: "provinceKey",
+        targetKey: "key",
+        as: "provinceDoctorData",
+      });
       Doctor.belongsToMany(models.Specialty, {
         through: "doctor_specialty",
         foreignKey: "doctorId",
