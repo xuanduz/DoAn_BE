@@ -58,9 +58,7 @@ const changePassword = async (patientInfo) => {
           success: false,
         });
       } else {
-        let hashedNewPassword = await Bcryptjs.hashPassword(
-          patientInfo.newPassword
-        );
+        let hashedNewPassword = await Bcryptjs.hashPassword(patientInfo.newPassword);
         await db.Patient.update(
           {
             password: hashedNewPassword,
@@ -105,8 +103,33 @@ const getAllProvince = async () => {
   });
 };
 
+const getAllPosition = async () => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      let positions = await db.Code.findAll({
+        where: {
+          type: "POSITION",
+        },
+        attributes: {
+          exclude: ["createdAt", "updatedAt"],
+        },
+        raw: true,
+      });
+      resolve({
+        message: Label.SUCCESS,
+        success: true,
+        data: positions,
+      });
+    } catch (err) {
+      console.log("err", err);
+      reject();
+    }
+  });
+};
+
 module.exports = {
   editAccount: editAccount,
   changePassword: changePassword,
   getAllProvince: getAllProvince,
+  getAllPosition: getAllPosition,
 };

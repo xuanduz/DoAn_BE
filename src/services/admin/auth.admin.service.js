@@ -50,10 +50,7 @@ const login = async (data) => {
       });
       let result = {};
       if (account) {
-        let comparePassword = await Bcryptjs.comparePassword(
-          data.password,
-          account.password
-        );
+        let comparePassword = await Bcryptjs.comparePassword(data.password, account.password);
         if (comparePassword) {
           let token = generateTokens(account);
           await db.Admin.update(
@@ -124,10 +121,17 @@ const getNewAccessToken = async (req, res) => {
       if (!account) {
         resolve(res.sendStatus(403));
       }
+      console.log(">> check ", verifyRefreshToken(refreshToken));
       if (verifyRefreshToken(refreshToken)) {
         const tokens = generateTokens(account);
         updateRefreshToken(account.email, refreshToken);
         resolve(res.status(200).json(tokens));
+      } else {
+        resolve(
+          res.status(401).json({
+            message: "Unauthorized",
+          })
+        );
       }
     } catch (e) {
       reject(e);

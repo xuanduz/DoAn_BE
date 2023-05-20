@@ -1,5 +1,6 @@
 import db from "../../models";
 import { Label } from "../../utils/labels/label";
+import { getListData, getPageAmount } from "../../utils/pagingData";
 const { Op } = require("sequelize");
 
 const addNewClinic = async (clinicData) => {
@@ -57,19 +58,12 @@ const getClinic = async (clinicId) => {
 const filterAppointment = async (filter) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const {
-        pageNum,
-        pageSize,
-        orderBy,
-        patientName,
-        provinceKey,
-        statusKey,
-        bookingType,
-        date,
-      } = filter;
-      const listAppointment = await db.Appointment.findAll({
+      const { pageNum, pageSize, orderBy, patientName, provinceKey, statusKey, bookingType, date } =
+        filter;
+      const { count, rows } = await db.Appointment.findAndCountAll({
         offset: (+pageNum - 1) * +pageSize,
         limit: +pageSize,
+        distinct: true,
         order: [["createdAt", orderBy || "DESC"]],
         where: {
           statusKey: {
@@ -89,13 +83,7 @@ const filterAppointment = async (filter) => {
               },
             },
             attributes: {
-              exclude: [
-                "createdAt",
-                "updatedAt",
-                "password",
-                "accessToken",
-                "refreshToken",
-              ],
+              exclude: ["createdAt", "updatedAt", "password", "accessToken", "refreshToken"],
             },
             include: [
               {
@@ -149,11 +137,12 @@ const filterAppointment = async (filter) => {
       resolve({
         message: Label.SUCCESS,
         success: true,
-        data: listAppointment,
+        data: rows,
         pagination: {
-          pageNum: pageNum,
-          pageSize: listAppointment?.length % pageSize,
-          records: listAppointment?.length,
+          pageNum: getPageAmount(count, pageSize) < pageNum ? pageNum - 1 : pageNum,
+          pageSize: pageSize,
+          pageAmount: getPageAmount(count, pageSize),
+          records: count,
         },
       });
     } catch (err) {
@@ -175,12 +164,38 @@ const editAppointment = async (appointmentInfo) => {
           success: false,
         });
       }
-      const newAppointment = await appointment.update(appointmentInfo);
-      resolve({
-        message: Label.UPDATE_SUCCESS,
-        success: true,
-        data: newAppointment.dataValues,
+      let patient = await db.Patient.findOne({
+        where: { id: appointmentInfo.patientData.id },
       });
+      if (!patient) {
+        resolve({
+          message: Label.NOT_EXISTED_ACCOUNT,
+          success: false,
+        });
+      } else {
+        let existedEmail = await db.Patient.findOne({
+          where: {
+            email: appointmentInfo.patientData.email,
+            id: {
+              [Op.ne]: appointmentInfo.patientData.id,
+            },
+          },
+        });
+        if (existedEmail) {
+          resolve({
+            message: Label.EXISTED_EMAIL,
+            success: false,
+          });
+        } else {
+          await patient.update(appointmentInfo.patientData);
+          const newAppointment = await appointment.update(appointmentInfo);
+          resolve({
+            message: Label.UPDATE_SUCCESS,
+            success: true,
+            data: newAppointment.dataValues,
+          });
+        }
+      }
     } catch (err) {
       console.log("err", err);
       reject();

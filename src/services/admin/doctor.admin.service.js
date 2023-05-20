@@ -1,6 +1,7 @@
 import db from "../../models";
 import Bcryptjs from "../../utils/auth/bcryptjs";
 import { Label } from "../../utils/labels/label";
+import { getListData, getPageAmount } from "../../utils/pagingData";
 const { Op } = require("sequelize");
 
 const addNewDoctor = async (data) => {
@@ -31,7 +32,17 @@ const addNewDoctor = async (data) => {
           describe: doctorData.describe,
           provinceKey: doctorData.provinceKey,
           positionKey: doctorData.positionKey,
+
+          clinicId: doctorData.clinicId,
         });
+        if (doctorData.specialtyData.length) {
+          doctorData.specialtyData.map(async (spec) => {
+            await db.Doctor_Specialty.create({
+              doctorId: newDoctor.id,
+              specialtyId: spec.id,
+            });
+          });
+        }
         result = {
           message: Label.CREATE_ACCOUNT_SUCCESS,
           success: true,
@@ -77,13 +88,8 @@ const getDoctor = async (doctorId) => {
 const filterDoctor = async (filter) => {
   return new Promise(async (resolve, reject) => {
     try {
-      // "pageNum": 1,
-      // "pageSize": 9,
-      // "doctorName": null,
-      // "clincis": null,
-      // "specialists": null
       const { pageNum, pageSize, doctorName, clinicId, specialtyId } = filter;
-      const listDoctor = await db.Doctor.findAll({
+      let { count, rows } = await db.Doctor.findAndCountAll({
         offset: (+pageNum - 1) * +pageSize,
         limit: +pageSize,
         where: {
@@ -92,7 +98,7 @@ const filterDoctor = async (filter) => {
           },
         },
         attributes: {
-          exclude: ["password"],
+          exclude: ["password", "accessToken", "refreshToken"],
         },
         include: [
           {
@@ -105,11 +111,11 @@ const filterDoctor = async (filter) => {
           {
             model: db.Specialty,
             as: "specialtyData",
-            where: {
-              id: {
-                [Op.like]: `%${specialtyId ? specialtyId : ""}%`,
-              },
-            },
+            // where: {
+            //   id: {
+            //     [Op.like]: `%${specialtyId ? specialtyId : ""}%`,
+            //   },
+            // },
             attributes: {
               exclude: ["createdAt", "updatedAt"],
             },
@@ -128,17 +134,43 @@ const filterDoctor = async (filter) => {
           },
         ],
         nest: true,
+        distinct: true,
       });
+      let listDoctor = rows;
+      if (specialtyId && listDoctor) {
+        let temp = listDoctor;
+        listDoctor = temp.filter((doctor) =>
+          doctor.specialtyData.some((spec) => spec.id == specialtyId)
+        );
+      }
       resolve({
         message: Label.SUCCESS,
         success: true,
         data: listDoctor,
+        pagination: {
+          pageNum: getPageAmount(count, pageSize) < pageNum ? pageNum - 1 : pageNum,
+          pageSize: pageSize,
+          pageAmount: getPageAmount(count, pageSize),
+          records: count,
+        },
       });
     } catch (err) {
       console.log("err", err);
       reject();
     }
   });
+};
+
+const editSpecialty = async (doctorInfo) => {
+  const specialtiesExist = await db.Specialty.findAll({ raw: true });
+  const specialtiesRequest = doctorInfo.specialtyData.map((spec) => ({
+    id: spec.id,
+    name: spec.name,
+  }));
+  const newSpecialties = specialtiesRequest.filter((specReq) =>
+    specialtiesExist.includes((specExist) => specExist.id != specReq.id)
+  );
+  console.log("newSpecialties", specialtiesExist, specialtiesRequest, newSpecialties);
 };
 
 const editDoctor = async (doctorInfo) => {
@@ -153,6 +185,22 @@ const editDoctor = async (doctorInfo) => {
           success: false,
         });
       }
+      const specialtiesRequest = doctorInfo.specialtyData.map((spec) => ({
+        specialtyId: spec.id,
+        doctorId: doctorInfo.id,
+      }));
+
+      await db.Doctor_Specialty.destroy({
+        where: {
+          doctorId: doctorInfo.id,
+        },
+      });
+      await specialtiesRequest.map(async (doctor_spec) => {
+        await db.Doctor_Specialty.create({
+          doctorId: doctor_spec.doctorId,
+          specialtyId: doctor_spec.specialtyId,
+        });
+      });
       const newDoctor = await doctor.update(doctorInfo);
       resolve({
         message: Label.UPDATE_SUCCESS,

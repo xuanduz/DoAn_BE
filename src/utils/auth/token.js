@@ -5,11 +5,11 @@ const generateTokens = (payload) => {
   const { id, email } = payload;
 
   const accessToken = jwt.sign({ id, email }, process.env.ACCESS_TOKEN, {
-    expiresIn: "3h",
+    expiresIn: "1d",
   });
 
   const refreshToken = jwt.sign({ id, email }, process.env.REFRESH_TOKEN, {
-    expiresIn: "3h",
+    expiresIn: "5d",
   });
 
   return { accessToken, refreshToken };
@@ -21,12 +21,14 @@ const verifyToken = (req, res, next) => {
   if (!token) return res.sendStatus(401);
 
   try {
-    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN);
-    req.id = decoded.id;
+    jwt.verify(token, process.env.ACCESS_TOKEN);
     next();
   } catch (error) {
     console.log(error);
-    return res.sendStatus(403);
+    return res.sendStatus(401).json({
+      message: "Unauthorized",
+      success: false,
+    });
   }
 };
 

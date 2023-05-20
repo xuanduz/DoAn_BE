@@ -36,7 +36,7 @@ const getAllSpecialty = async () => {
     try {
       const specialties = await db.Specialty.findAll({
         attributes: {
-          exclude: ["descriptionHTML", "describe", "createdAt", "updatedAt"],
+          exclude: ["createdAt", "updatedAt"],
         },
         nest: true,
       });

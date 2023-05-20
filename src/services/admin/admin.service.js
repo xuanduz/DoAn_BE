@@ -44,28 +44,23 @@ const changePasswordAdmin = async (adminInfo) => {
   return new Promise(async (resolve, reject) => {
     try {
       let account = await db.Admin.findOne({
-        where: { id: adminInfo.id },
+        where: { email: adminInfo.email },
         raw: true,
       });
-      let comparePassword = await Bcryptjs.comparePassword(
-        adminInfo.oldPassword,
-        account.password
-      );
+      let comparePassword = await Bcryptjs.comparePassword(adminInfo.oldPassword, account.password);
       if (!comparePassword) {
         resolve({
-          message: Label.WRONG_PASSWORD,
+          message: Label.WRONG_OLD_PASSWORD,
           success: false,
         });
       } else {
-        let hashedNewPassword = await Bcryptjs.hashPassword(
-          adminInfo.newPassword
-        );
+        let hashedNewPassword = await Bcryptjs.hashPassword(adminInfo.newPassword);
         await db.Admin.update(
           {
             password: hashedNewPassword,
           },
           {
-            where: { id: adminInfo.id },
+            where: { email: adminInfo.email },
           }
         );
         resolve({
