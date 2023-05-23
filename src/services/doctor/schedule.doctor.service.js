@@ -6,26 +6,26 @@ const createSchedule = async (data) => {
   return new Promise(async (resolve, reject) => {
     try {
       const { doctorId, date, timeSlots } = data;
-      timeSlots.forEach(async (timeSlot, index) => {
-        await db.Schedule.create({
-          date: date,
-          timeSlot: timeSlot,
-          currentNumber: 1,
-          maxNumber: 1,
-          doctorId: doctorId,
-        });
-      });
-      const newSchedule = await db.Schedule.findAll({
+      await db.Schedule.destroy({
         where: {
-          date: date,
           doctorId: doctorId,
+          date: date,
         },
-        raw: true,
       });
-      resolve({
-        message: Label.UPDATE_SUCCESS,
-        success: true,
-        data: newSchedule,
+      const listScheduleCreate = timeSlots.map((time) => ({
+        date: date,
+        timeSlot: time,
+        currentNumber: 0,
+        maxNumber: 1,
+        doctorId: doctorId,
+      }));
+      const listScheduleUpdated = await db.Schedule.bulkCreate(listScheduleCreate);
+      Promise.all(listScheduleUpdated).then((data) => {
+        resolve({
+          message: Label.UPDATE_SUCCESS,
+          success: true,
+          data: data,
+        });
       });
     } catch (err) {
       console.log("err", err);
@@ -56,7 +56,31 @@ const getScheduleByDate = async (data) => {
   });
 };
 
+const getAllScheduleCode = async () => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const listSchedule = await db.Code.findAll({
+        where: {
+          type: "TIME",
+        },
+        attributes: {
+          exclude: ["createdAt", "updatedAt"],
+        },
+      });
+      resolve({
+        message: Label.SUCCESS,
+        success: true,
+        data: listSchedule,
+      });
+    } catch (err) {
+      console.log("err", err);
+      reject();
+    }
+  });
+};
+
 module.exports = {
   createSchedule: createSchedule,
   getScheduleByDate: getScheduleByDate,
+  getAllScheduleCode: getAllScheduleCode,
 };

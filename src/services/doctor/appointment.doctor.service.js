@@ -76,27 +76,22 @@ const editAppointment = async (appointmentInfo, file) => {
 const filterAppointment = async (filter) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const {
-        pageNum,
-        pageSize,
-        orderBy,
-        doctorId,
-        date,
-        provinceKey,
-        statusKey,
-        patientName,
-        bookingType,
-      } = filter;
+      const { pageNum, pageSize, orderBy, doctorId, date, statusKey, patientName, bookingType } =
+        filter;
       const listSchedule = await db.Appointment.findAll({
         offset: (+pageNum - 1) * +pageSize,
         limit: +pageSize,
-        order: [["createdAt", orderBy]],
+        distinct: true,
+        order: [["createdAt", orderBy || "DESC"]],
         where: {
           doctorId: doctorId,
-          date: date ? date : "",
+          date: {
+            [Op.like]: `%${date ? date : ""}%`,
+          },
           bookingType: bookingType ? bookingType : "B1",
           statusKey: {
             [Op.like]: `%${statusKey ? statusKey : ""}%`,
+            [Op.ne]: "S1",
           },
         },
         include: [
@@ -109,28 +104,29 @@ const filterAppointment = async (filter) => {
               },
             },
             attributes: {
-              exclude: [
-                "createdAt",
-                "updatedAt",
-                "password",
-                "accessToken",
-                "refreshToken",
-              ],
+              exclude: ["createdAt", "updatedAt", "password", "accessToken", "refreshToken"],
             },
-            include: [
-              {
-                model: db.Code,
-                as: "provinceData",
-                where: {
-                  key: {
-                    [Op.like]: `%${provinceKey ? provinceKey : ""}%`,
-                  },
-                },
-                attributes: {
-                  exclude: ["createdAt", "updatedAt"],
-                },
-              },
-            ],
+          },
+          {
+            model: db.Code,
+            as: "timeData",
+            attributes: {
+              exclude: ["createdAt", "updatedAt"],
+            },
+          },
+          {
+            model: db.Code,
+            as: "bookingData",
+            attributes: {
+              exclude: ["createdAt", "updatedAt"],
+            },
+          },
+          {
+            model: db.Code,
+            as: "statusData",
+            attributes: {
+              exclude: ["createdAt", "updatedAt"],
+            },
           },
         ],
       });

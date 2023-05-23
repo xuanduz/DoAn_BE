@@ -10,6 +10,16 @@ const editAccount = async (req, res) => {
   }
 };
 
+const getPatient = async (req, res) => {
+  try {
+    const result = await patientService.getPatient(req.params.id);
+    return res.status(200).json(result);
+  } catch (err) {
+    console.log("err", err);
+    return res.sendStatus(403);
+  }
+};
+
 const changePassword = async (req, res) => {
   try {
     const result = await patientService.changePassword(req.body);
@@ -42,6 +52,7 @@ const getAllPosition = async (req, res) => {
 
 module.exports = {
   editAccount: editAccount,
+  getPatient: getPatient,
   changePassword: changePassword,
   getAllProvince: getAllProvince,
   getAllPosition: getAllPosition,

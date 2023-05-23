@@ -187,6 +187,25 @@ const editAppointment = async (appointmentInfo) => {
             success: false,
           });
         } else {
+          // if (appointmentInfo.statusKey != 'S1')
+          const scheduleExist = await db.Schedule.findOne({
+            where: {
+              doctorId: appointment.dataValues.doctorId,
+              date: appointment.dataValues.date,
+              timeSlot: appointment.dataValues.timeSlot || "",
+            },
+          });
+          if (appointmentInfo.statusKey == "S1") {
+            await scheduleExist.update({
+              ...scheduleExist,
+              currentNumber: 0,
+            });
+          } else {
+            await scheduleExist.update({
+              ...scheduleExist,
+              currentNumber: 1,
+            });
+          }
           await patient.update(appointmentInfo.patientData);
           const newAppointment = await appointment.update(appointmentInfo);
           resolve({

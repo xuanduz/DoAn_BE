@@ -18,7 +18,7 @@ export const Label = {
   WRONG_PASSWORD_OR_EMAIL: "Sai email hoặc mật khẩu",
   CHANGE_PASSWORD_SUCCESS: "Đổi mật khẩu thành công",
   LOGIN_SUCCESS: "Đăng nhập thành công",
-  BOOKING_SUCCESS: "Đặt lịch hẹn thành công",
+  BOOKING_SUCCESS: "Đặt lịch hẹn thành công, bạn có thể vào phần lịch sử để kiểm tra trạng thái!",
   BOOKING_FAIL: "Đặt lịch hẹn không thành công",
   BOOKING_FAIL_NOT_EXIST_DOCTOR:
     "Đặt lịch hẹn không thành công do bác sĩ bạn chọn không còn tồn tại, vui lòng chọn bác sĩ khác",

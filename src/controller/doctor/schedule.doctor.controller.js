@@ -20,7 +20,18 @@ const getScheduleByDate = async (req, res) => {
   }
 };
 
+const getAllScheduleCode = async (req, res) => {
+  try {
+    const result = await scheduleDoctorService.getAllScheduleCode();
+    return res.status(200).json(result);
+  } catch (err) {
+    console.log("err", err);
+    return res.sendStatus(403);
+  }
+};
+
 module.exports = {
   createSchedule: createSchedule,
   getScheduleByDate: getScheduleByDate,
+  getAllScheduleCode: getAllScheduleCode,
 };

@@ -5,3 +5,16 @@ export const getPageAmount = (length, pageSize) => {
 export const getListData = (listData, pageNum, pageSize) => {
   return listData.length ? listData.slice((pageNum - 1) * pageSize, pageNum * pageSize) : [];
 };
+
+export const getQueryWithId = (id) => {
+  return id
+    ? {
+        where: {
+          id: id,
+        },
+        required: true,
+      }
+    : {
+        required: false,
+      };
+};

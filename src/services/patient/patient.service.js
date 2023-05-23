@@ -41,11 +41,42 @@ const editAccount = async (patientInfo) => {
   });
 };
 
+const getPatient = async (id) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      let patient = await db.Patient.findOne({
+        where: { id: id },
+        attributes: {
+          exclude: ["createdAt", "updatedAt", "accessToken", "refreshToken"],
+        },
+        includes: [
+          {
+            odel: db.Code,
+            as: "provincePatientData",
+            attributes: {
+              exclude: ["updatedAt", "createdAt"],
+            },
+          },
+        ],
+        nest: true,
+      });
+      resolve({
+        message: Label.UPDATE_SUCCESS,
+        success: true,
+        data: patient,
+      });
+    } catch (err) {
+      console.log("err", err);
+      reject();
+    }
+  });
+};
+
 const changePassword = async (patientInfo) => {
   return new Promise(async (resolve, reject) => {
     try {
       let account = await db.Patient.findOne({
-        where: { id: patientInfo.id },
+        where: { email: patientInfo.email },
         raw: true,
       });
       let comparePassword = await Bcryptjs.comparePassword(
@@ -64,7 +95,7 @@ const changePassword = async (patientInfo) => {
             password: hashedNewPassword,
           },
           {
-            where: { id: patientInfo.id },
+            where: { email: patientInfo.email },
           }
         );
         resolve({
@@ -129,6 +160,7 @@ const getAllPosition = async () => {
 
 module.exports = {
   editAccount: editAccount,
+  getPatient: getPatient,
   changePassword: changePassword,
   getAllProvince: getAllProvince,
   getAllPosition: getAllPosition,

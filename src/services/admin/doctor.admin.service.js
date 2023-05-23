@@ -1,7 +1,7 @@
 import db from "../../models";
 import Bcryptjs from "../../utils/auth/bcryptjs";
 import { Label } from "../../utils/labels/label";
-import { getListData, getPageAmount } from "../../utils/pagingData";
+import { getListData, getPageAmount, getQueryWithId } from "../../utils/pagingData";
 const { Op } = require("sequelize");
 
 const addNewDoctor = async (data) => {
@@ -89,7 +89,7 @@ const filterDoctor = async (filter) => {
   return new Promise(async (resolve, reject) => {
     try {
       const { pageNum, pageSize, doctorName, clinicId, specialtyId } = filter;
-      let { count, rows } = await db.Doctor.findAndCountAll({
+      db.Doctor.findAndCountAll({
         offset: (+pageNum - 1) * +pageSize,
         limit: +pageSize,
         where: {
@@ -102,57 +102,70 @@ const filterDoctor = async (filter) => {
         },
         include: [
           {
-            model: db.Schedule,
-            as: "scheduleData",
-            attributes: {
-              exclude: ["createdAt", "updatedAt"],
-            },
-          },
-          {
             model: db.Specialty,
             as: "specialtyData",
-            // where: {
-            //   id: {
-            //     [Op.like]: `%${specialtyId ? specialtyId : ""}%`,
-            //   },
-            // },
             attributes: {
               exclude: ["createdAt", "updatedAt"],
             },
+            ...getQueryWithId(specialtyId),
           },
           {
             model: db.Clinic,
             as: "clinicData",
-            where: {
-              id: {
-                [Op.like]: `%${clinicId ? clinicId : ""}%`,
-              },
-            },
             attributes: {
               exclude: ["email", "createdAt", "updatedAt"],
             },
+            ...getQueryWithId(clinicId),
           },
         ],
         nest: true,
         distinct: true,
-      });
-      let listDoctor = rows;
-      if (specialtyId && listDoctor) {
-        let temp = listDoctor;
-        listDoctor = temp.filter((doctor) =>
-          doctor.specialtyData.some((spec) => spec.id == specialtyId)
-        );
-      }
-      resolve({
-        message: Label.SUCCESS,
-        success: true,
-        data: listDoctor,
-        pagination: {
-          pageNum: getPageAmount(count, pageSize) < pageNum ? pageNum - 1 : pageNum,
-          pageSize: pageSize,
-          pageAmount: getPageAmount(count, pageSize),
-          records: count,
-        },
+      }).then(({ count, rows }) => {
+        const listIds = rows.map((item) => item.id);
+        const listDoctor = specialtyId
+          ? listIds.map((id) =>
+              db.Doctor.findOne({
+                where: {
+                  id: id,
+                },
+                attributes: {
+                  exclude: ["password", "accessToken", "refreshToken"],
+                },
+                include: [
+                  {
+                    model: db.Specialty,
+                    as: "specialtyData",
+                    required: false,
+                    attributes: {
+                      exclude: ["createdAt", "updatedAt"],
+                    },
+                  },
+                  {
+                    model: db.Clinic,
+                    as: "clinicData",
+                    attributes: {
+                      exclude: ["email", "createdAt", "updatedAt"],
+                    },
+                    ...getQueryWithId(clinicId),
+                  },
+                ],
+                nest: true,
+              })
+            )
+          : rows;
+        Promise.all(listDoctor).then((data) => {
+          resolve({
+            message: Label.SUCCESS,
+            success: true,
+            data: data,
+            pagination: {
+              pageNum: getPageAmount(count, pageSize) < pageNum ? pageNum - 1 : pageNum,
+              pageSize: pageSize,
+              pageAmount: getPageAmount(count, pageSize),
+              records: count,
+            },
+          });
+        });
       });
     } catch (err) {
       console.log("err", err);

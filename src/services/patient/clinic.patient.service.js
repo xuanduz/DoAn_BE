@@ -1,12 +1,13 @@
 import db from "../../models";
 import { Label } from "../../utils/labels/label";
+import { getPageAmount } from "../../utils/pagingData";
 const { Op } = require("sequelize");
 
 const filterClinic = async (filter) => {
   return new Promise(async (resolve, reject) => {
     try {
       const { pageNum, pageSize, clinicName, provinceKey } = filter;
-      const listClinic = await db.Clinic.findAll({
+      const { count, rows } = await db.Clinic.findAndCountAll({
         offset: (+pageNum - 1) * +pageSize,
         limit: +pageSize,
         where: {
@@ -35,7 +36,13 @@ const filterClinic = async (filter) => {
       resolve({
         message: Label.SUCCESS,
         success: true,
-        data: listClinic,
+        data: rows,
+        pagination: {
+          pageNum: getPageAmount(count, pageSize) < pageNum ? pageNum - 1 : pageNum,
+          pageSize: pageSize,
+          pageAmount: getPageAmount(count, pageSize),
+          records: count,
+        },
       });
     } catch (err) {
       console.log("err", err);
@@ -83,6 +90,26 @@ const getClinic = async (clinicId) => {
         where: {
           id: clinicId,
         },
+        include: [
+          {
+            model: db.Doctor,
+            as: "doctorData",
+            offset: 0,
+            limit: 3,
+            attributes: {
+              exclude: ["createdAt", "updatedAt", "password", "accessToken", "refreshToken"],
+            },
+            include: [
+              {
+                model: db.Code,
+                as: "positionData",
+                attributes: {
+                  exclude: ["createdAt", "updatedAt"],
+                },
+              },
+            ],
+          },
+        ],
         nest: true,
       });
       resolve({

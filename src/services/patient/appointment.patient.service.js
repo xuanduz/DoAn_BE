@@ -6,31 +6,22 @@ import moment from "moment";
 const booking = async (bookingData) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const {
-        patientId,
-        doctorId,
-        date,
-        time,
-        timeSlot,
-        reason,
-        statusKey,
-        bookingType,
-      } = bookingData;
-      let dateNow = new Date();
-      let currentDate = moment().format("DD-MM-YYYY");
-      let currentHour = `${dateNow.getHours()}:${dateNow.getMinutes()}`;
-      let timeNow = moment(
-        `${currentDate} ${currentHour}`,
-        "DD-MM-YYYY hh:mm"
-      ).toDate();
+      const { patientData, doctorId, date, time, timeSlot, reason, statusKey, bookingType } =
+        bookingData;
+      // let dateNow = new Date();
+      // let currentDate = moment().format("DD-MM-YYYY");
+      // let currentHour = `${dateNow.getHours()}:${dateNow.getMinutes()}`;
+      // let timeNow = moment(
+      //   `${currentDate} ${currentHour}`,
+      //   "DD-MM-YYYY hh:mm"
+      // ).toDate();
 
-      const timeType = await db.Code.findOne({
+      await db.Patient.update(patientData, {
         where: {
-          type: "TIME",
-          value: timeSlot,
+          id: patientData.id,
         },
-        raw: true,
       });
+
       const existDoctor = await db.Doctor.findOne({
         where: {
           id: doctorId,
@@ -47,12 +38,13 @@ const booking = async (bookingData) => {
           statusKey: statusKey || "S1",
           date: date,
           time: time,
-          patientId: patientId,
+          patientId: patientData.id,
           doctorId: doctorId,
-          timeSlot: timeType.key,
+          timeSlot: timeSlot,
           reason: reason,
           bookingType: bookingType || "B1",
         });
+
         resolve({
           message: Label.BOOKING_SUCCESS,
           success: true,
@@ -72,13 +64,60 @@ const getHistoryPatient = async (patientId) => {
         where: {
           patientId: patientId,
         },
-        raw: true,
+        include: [
+          {
+            model: db.Doctor,
+            as: "doctorData",
+            attributes: {
+              exclude: ["createdAt", "updatedAt", "password", "refreshToken", "accessToken"],
+            },
+            includes: [
+              {
+                model: db.Code,
+                as: "positionData",
+                attributes: {
+                  exclude: ["createdAt", "updatedAt"],
+                },
+              },
+            ],
+          },
+          {
+            model: db.Code,
+            as: "statusData",
+            attributes: {
+              exclude: ["createdAt", "updatedAt"],
+            },
+          },
+          {
+            model: db.Code,
+            as: "timeData",
+            attributes: {
+              exclude: ["createdAt", "updatedAt"],
+            },
+          },
+          {
+            model: db.Code,
+            as: "bookingData",
+            attributes: {
+              exclude: ["createdAt", "updatedAt"],
+            },
+          },
+        ],
+        nest: true,
       });
-      resolve({
-        message: Label.NOT_EXIST_APPOINTMENT,
-        success: false,
-        data: appointments,
-      });
+      if (!appointments.length) {
+        resolve({
+          message: Label.NOT_EXIST_APPOINTMENT,
+          success: false,
+          data: appointments,
+        });
+      } else {
+        resolve({
+          message: Label.SUCCESS,
+          success: true,
+          data: appointments,
+        });
+      }
     } catch (err) {
       console.log("err", err);
       reject();

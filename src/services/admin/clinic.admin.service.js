@@ -72,6 +72,7 @@ const filterClinic = async (filter) => {
           {
             model: db.Code,
             as: "provinceData",
+            required: provinceKey ? true : false,
             where: {
               key: {
                 [Op.like]: `%${provinceKey ? provinceKey : ""}%`,

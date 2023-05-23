@@ -1,22 +1,14 @@
-import Sequelize from "sequelize";
 import db from "../../models";
 import { Label } from "../../utils/labels/label";
+import { getPageAmount, getQueryWithId } from "../../utils/pagingData";
 const { Op } = require("sequelize");
 
 const filterDoctor = async (filter) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const {
-        pageNum,
-        pageSize,
-        doctorName,
-        clinicId,
-        specialtyId,
-        minPrice,
-        maxPrice,
-      } = filter;
+      const { pageNum, pageSize, doctorName, clinicId, specialtyId, minPrice, maxPrice } = filter;
 
-      const listDoctor = await db.Doctor.findAll({
+      db.Doctor.findAndCountAll({
         offset: (+pageNum - 1) * +pageSize,
         limit: +pageSize,
         where: {
@@ -24,46 +16,29 @@ const filterDoctor = async (filter) => {
             [Op.like]: `%${doctorName ? doctorName : ""}%`,
           },
           price: {
-            [Op.gte]: +minPrice,
-            [Op.lte]: +maxPrice,
+            [Op.gte]: minPrice ? +minPrice : 0,
+            [Op.lte]: maxPrice ? +maxPrice : 100000000,
           },
         },
         attributes: {
-          exclude: ["password"],
+          exclude: ["password", "accessToken", "refreshToken"],
         },
         include: [
           {
-            model: db.Schedule,
-            as: "scheduleData",
-            required: false,
-          },
-          {
             model: db.Specialty,
             as: "specialtyData",
-            required: false,
-            where: {
-              id: {
-                [Op.like]: `%${specialtyId ? specialtyId : ""}%`,
-              },
+            attributes: {
+              exclude: ["createdAt", "updatedAt"],
             },
+            ...getQueryWithId(specialtyId),
           },
           {
             model: db.Clinic,
             as: "clinicData",
-            required: false,
-            where: {
-              id: {
-                [Op.like]: `%${clinicId ? clinicId : ""}%`,
-              },
-            },
-          },
-          {
-            model: db.Code,
-            as: "provinceDoctorData",
-            // require: false,
             attributes: {
-              exclude: ["createdAt", "updatedAt"],
+              exclude: ["email", "createdAt", "updatedAt"],
             },
+            ...getQueryWithId(clinicId),
           },
           {
             model: db.Code,
@@ -75,11 +50,61 @@ const filterDoctor = async (filter) => {
           },
         ],
         nest: true,
-      });
-      resolve({
-        message: Label.SUCCESS,
-        success: true,
-        data: listDoctor,
+        distinct: true,
+      }).then(({ count, rows }) => {
+        const listIds = rows.map((item) => item.id);
+        const listDoctor = specialtyId
+          ? listIds.map((id) =>
+              db.Doctor.findOne({
+                where: {
+                  id: id,
+                },
+                attributes: {
+                  exclude: ["password", "accessToken", "refreshToken"],
+                },
+                include: [
+                  {
+                    model: db.Specialty,
+                    as: "specialtyData",
+                    required: false,
+                    attributes: {
+                      exclude: ["createdAt", "updatedAt"],
+                    },
+                  },
+                  {
+                    model: db.Clinic,
+                    as: "clinicData",
+                    attributes: {
+                      exclude: ["email", "createdAt", "updatedAt"],
+                    },
+                    ...getQueryWithId(clinicId),
+                  },
+                  {
+                    model: db.Code,
+                    as: "positionData",
+                    // require: false,
+                    attributes: {
+                      exclude: ["createdAt", "updatedAt"],
+                    },
+                  },
+                ],
+                nest: true,
+              })
+            )
+          : rows;
+        Promise.all(listDoctor).then((data) => {
+          resolve({
+            message: Label.SUCCESS,
+            success: true,
+            data: data,
+            pagination: {
+              pageNum: getPageAmount(count, pageSize) < pageNum ? pageNum - 1 : pageNum,
+              pageSize: pageSize,
+              pageAmount: getPageAmount(count, pageSize),
+              records: count,
+            },
+          });
+        });
       });
     } catch (err) {
       console.log("err", err);
@@ -92,46 +117,30 @@ const getListFeaturedDoctor = async (pageNum, pageSize) => {
   return await db.Doctor.findAll({
     offset: (+pageNum - 1) * +pageSize,
     limit: +pageSize,
-    group: ["Doctor.id"],
-    subQuery: false,
+    // group: ["Doctor.id"],
+    // subQuery: false,
     attributes: {
-      include: [
-        [
-          Sequelize.fn("COUNT", Sequelize.col("appointmentData.id")),
-          "appCount",
-        ],
-      ],
+      // include: [[Sequelize.fn("COUNT", Sequelize.col("appointmentData.id")), "appCount"]],
       exclude: ["password"],
     },
-    order: [[Sequelize.literal("appCount"), "DESC"]],
-    include: [
-      {
-        model: db.Appointment,
-        as: "appointmentData",
-        required: true,
-        attributes: [],
-      },
-    ],
+    // order: [[Sequelize.literal("appCount"), "DESC"]],
+    // include: [
+    //   {
+    //     model: db.Appointment,
+    //     as: "appointmentData",
+    //     required: true,
+    //     attributes: [],
+    //   },
+    // ],
   });
 };
 
 const filterFeaturedDoctor = async (filter) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const {
-        pageNum,
-        pageSize,
-        doctorName,
-        clinicId,
-        specialtyId,
-        minPrice,
-        maxPrice,
-      } = filter;
+      const { pageNum, pageSize, doctorName, clinicId, specialtyId, minPrice, maxPrice } = filter;
 
-      const listDoctorFreatured = await getListFeaturedDoctor(
-        pageNum,
-        pageSize
-      );
+      const listDoctorFreatured = await getListFeaturedDoctor(pageNum, pageSize);
       const listId = listDoctorFreatured.map((doctor) => doctor.id);
       const listDoctor = await db.Doctor.findAll({
         where: {
@@ -156,12 +165,7 @@ const filterFeaturedDoctor = async (filter) => {
           {
             model: db.Specialty,
             as: "specialtyData",
-            required: false,
-            where: {
-              id: {
-                [Op.like]: `%${specialtyId ? specialtyId : ""}%`,
-              },
-            },
+            ...getQueryWithId(specialtyId),
           },
           {
             model: db.Code,
@@ -182,12 +186,7 @@ const filterFeaturedDoctor = async (filter) => {
           {
             model: db.Clinic,
             as: "clinicData",
-            required: false,
-            where: {
-              id: {
-                [Op.like]: `%${clinicId ? clinicId : ""}%`,
-              },
-            },
+            ...getQueryWithId(clinicId),
           },
         ],
         nest: true,
@@ -207,39 +206,94 @@ const filterFeaturedDoctor = async (filter) => {
 const getDoctor = async (doctorId) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const doctorData = await db.Doctor.findOne({
+      // Lấy lịch mai + 6 ngày nữa
+      var d = new Date();
+      const listDate = Array(7)
+        .fill(0)
+        .map((item, idx) => {
+          d.setDate(d.getDate() + 1);
+          return d.toLocaleDateString("pt-br").split("/").join("-");
+        });
+
+      const listScheduleValid = await db.Schedule.findAll({
         where: {
-          id: doctorId,
+          doctorId: doctorId,
+          date: listDate,
         },
-        attributes: {
-          exclude: ["password"],
-        },
-        include: [
-          {
-            model: db.Schedule,
-            as: "scheduleData",
-          },
-          {
-            model: db.Specialty,
-            as: "specialtyData",
-            attributes: {
-              exclude: ["descriptionHTML"],
-            },
-          },
-          {
-            model: db.Clinic,
-            as: "clinicData",
-            attributes: {
-              exclude: ["descriptionHTML"],
-            },
-          },
-        ],
-        nest: true,
+        attributes: ["date"],
+        group: ["date"],
+        raw: true,
       });
-      resolve({
-        message: Label.SUCCESS,
-        success: true,
-        data: doctorData,
+      Promise.all(listScheduleValid).then(async (listSche) => {
+        const listScheValue = listSche.length ? listSche.map((sche) => sche.date) : [];
+        const querySchedule = listSche.length
+          ? {
+              where: {
+                currentNumber: 0,
+                date: [listScheValue],
+              },
+              required: false,
+            }
+          : {
+              required: false,
+            };
+
+        const doctorData = await db.Doctor.findOne({
+          where: {
+            id: doctorId,
+          },
+          attributes: {
+            exclude: ["password", "accessToken", "refreshToken"],
+          },
+          include: [
+            {
+              model: db.Schedule,
+              as: "scheduleData",
+              attributes: {
+                exclude: ["updatedAt", "createdAt", "currentNumber", "maxNumber"],
+              },
+              ...querySchedule,
+              // includes: [
+              //   {
+              //     model: db.Code,
+              //     as: "timeData",
+              //     attributes: {
+              //       exclude: ["updatedAt", "createdAt"],
+              //     },
+              //     required: true,
+              //   },
+              // ],
+            },
+            {
+              model: db.Specialty,
+              as: "specialtyData",
+              attributes: {
+                exclude: ["descriptionHTML"],
+              },
+            },
+            {
+              model: db.Clinic,
+              as: "clinicData",
+              attributes: {
+                exclude: ["descriptionHTML"],
+              },
+            },
+            {
+              model: db.Code,
+              as: "positionData",
+              attributes: {
+                exclude: ["updatedAt", "createdAt"],
+              },
+            },
+          ],
+          nest: true,
+        });
+
+        resolve({
+          message: Label.SUCCESS,
+          success: true,
+          data: doctorData,
+        });
       });
     } catch (err) {
       console.log("err", err);
@@ -249,7 +303,7 @@ const getDoctor = async (doctorId) => {
 };
 
 module.exports = {
-  filterDoctor: filterDoctor,
   getDoctor: getDoctor,
+  filterDoctor: filterDoctor,
   filterFeaturedDoctor: filterFeaturedDoctor,
 };

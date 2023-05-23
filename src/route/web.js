@@ -102,32 +102,34 @@ let initWebRoutes = (app) => {
   router.get(`${RouteName.PATIENT}/position/all`, patientController.getAllPosition);
   router.get(`${RouteName.PATIENT}/clinic/all`, clinicPatientController.getAllClinic);
   router.get(`${RouteName.PATIENT}/specialty/all`, specialtyPatientController.getAllSpecialty);
+  router.get(`${RouteName.PATIENT}/specialty/:id`, specialtyPatientController.getSpecialty);
+  router.get(`${RouteName.PATIENT}/patient/:id`, verifyToken, patientController.getPatient);
+  router.put(`${RouteName.PATIENT}/patient/edit`, verifyToken, patientController.editAccount);
+  router.put(
+    `${RouteName.PATIENT}/patient/change-password`,
+    verifyToken,
+    patientController.changePassword
+  );
 
-  router.post(`${RouteName.PATIENT}/doctor/filter`, doctorPatientController.filterDoctor);
   router.post(
     `${RouteName.PATIENT}/doctor/featured/filter`,
     doctorPatientController.filterFeaturedDoctor
   );
+  router.post(`${RouteName.PATIENT}/doctor/filter`, doctorPatientController.filterDoctor);
   router.get(`${RouteName.PATIENT}/doctor/:id`, doctorPatientController.getDoctor);
 
   router.post(`${RouteName.PATIENT}/clinic/filter`, clinicPatientController.filterClinic);
-  // router.post(
-  //   `${RouteName.PATIENT}/clinic/featured/filter`,
-  //   clinicPatientController.filterFeaturedClinic
-  // );
   router.get(`${RouteName.PATIENT}/clinic/:id`, clinicPatientController.getClinic);
 
   router.post(`${RouteName.PATIENT}/specialty/filter`, specialtyPatientController.filterSpecialty);
 
-  router.post(`${RouteName.PATIENT}/booking/`, verifyToken, appointmentPatientController.booking);
+  router.post(`${RouteName.PATIENT}/booking`, verifyToken, appointmentPatientController.booking);
+
   router.get(
     `${RouteName.PATIENT}/history/:id`,
     verifyToken,
     appointmentPatientController.getHistoryPatient
   );
-
-  router.put(`${RouteName.PATIENT}/edit`, verifyToken, patientController.editAccount);
-  router.put(`${RouteName.PATIENT}/change-password`, verifyToken, patientController.changePassword);
 
   //------------------------------------ Doctor --------------------------------
   router.post(`${RouteName.DOCTOR}/register`, authDoctorController.register);
@@ -139,11 +141,14 @@ let initWebRoutes = (app) => {
     verifyToken,
     doctorController.changePasswordDoctor
   );
+  router.get(`${RouteName.DOCTOR}/doctor/:id`, verifyToken, doctorController.getDetail);
+  router.put(`${RouteName.DOCTOR}/doctor/edit`, verifyToken, doctorController.editDoctor);
   router.post(
     `${RouteName.DOCTOR}/schedule/by-date`,
     verifyToken,
     scheduleDoctorController.getScheduleByDate
   );
+  router.get(`${RouteName.DOCTOR}/schedule/all`, scheduleDoctorController.getAllScheduleCode);
   router.post(
     `${RouteName.DOCTOR}/schedule/create`,
     verifyToken,

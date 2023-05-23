@@ -10,6 +10,16 @@ const editDoctor = async (req, res) => {
   }
 };
 
+const getDetail = async (req, res) => {
+  try {
+    const result = await doctorService.getDetail(req.params.id);
+    return res.status(200).json(result);
+  } catch (err) {
+    console.log("err", err);
+    return res.sendStatus(403);
+  }
+};
+
 const changePasswordDoctor = async (req, res) => {
   try {
     const result = await doctorService.changePasswordDoctor(req.body);
@@ -23,4 +33,5 @@ const changePasswordDoctor = async (req, res) => {
 module.exports = {
   editDoctor: editDoctor,
   changePasswordDoctor: changePasswordDoctor,
+  getDetail: getDetail,
 };
