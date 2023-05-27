@@ -8,20 +8,11 @@ const booking = async (bookingData) => {
     try {
       const { patientData, doctorId, date, time, timeSlot, reason, statusKey, bookingType } =
         bookingData;
-      // let dateNow = new Date();
-      // let currentDate = moment().format("DD-MM-YYYY");
-      // let currentHour = `${dateNow.getHours()}:${dateNow.getMinutes()}`;
-      // let timeNow = moment(
-      //   `${currentDate} ${currentHour}`,
-      //   "DD-MM-YYYY hh:mm"
-      // ).toDate();
-
       await db.Patient.update(patientData, {
         where: {
           id: patientData.id,
         },
       });
-
       const existDoctor = await db.Doctor.findOne({
         where: {
           id: doctorId,
@@ -44,7 +35,6 @@ const booking = async (bookingData) => {
           reason: reason,
           bookingType: bookingType || "B1",
         });
-
         resolve({
           message: Label.BOOKING_SUCCESS,
           success: true,

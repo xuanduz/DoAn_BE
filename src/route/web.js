@@ -117,7 +117,7 @@ let initWebRoutes = (app) => {
   );
   router.post(`${RouteName.PATIENT}/doctor/filter`, doctorPatientController.filterDoctor);
   router.get(`${RouteName.PATIENT}/doctor/:id`, doctorPatientController.getDoctor);
-
+  router.get(`${RouteName.PATIENT}/doctor/relate/:id`, doctorPatientController.getRelateDoctor);
   router.post(`${RouteName.PATIENT}/clinic/filter`, clinicPatientController.filterClinic);
   router.get(`${RouteName.PATIENT}/clinic/:id`, clinicPatientController.getClinic);
 

@@ -55,10 +55,7 @@ const login = async (data) => {
       });
       let result = {};
       if (account) {
-        let comparePassword = await Bcryptjs.comparePassword(
-          data.password,
-          account.password
-        );
+        let comparePassword = await Bcryptjs.comparePassword(data.password, account.password);
         if (comparePassword) {
           let token = generateTokens(account);
           await db.Doctor.update(

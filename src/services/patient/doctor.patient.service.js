@@ -302,8 +302,71 @@ const getDoctor = async (doctorId) => {
   });
 };
 
+const getRelateDoctor = async (doctorId) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const specialtyIds = await db.Doctor_Specialty.findAll({
+        attributes: ["specialtyId"],
+        where: {
+          doctorId: doctorId,
+        },
+      });
+      let listDoctorLelate = [];
+      const listId = specialtyIds.map((spec) => spec.specialtyId);
+      const doctors = await db.Doctor_Specialty.findAll({
+        attributes: ["doctorId"],
+        where: {
+          specialtyId: [listId],
+        },
+      });
+      let listDoctorLelateIds = doctors
+        .map((doctor) => doctor.doctorId)
+        .filter((spec) => spec != doctorId);
+      console.log("listDoctorLelateIds", listDoctorLelateIds);
+      if (listDoctorLelateIds.length) {
+        listDoctorLelate = await db.Doctor.findAll({
+          offset: 0,
+          limit: 3,
+          where: {
+            id: listDoctorLelateIds,
+          },
+          attributes: {
+            exclude: ["password", "accessToken", "refreshToken", "descriptionHTML"],
+          },
+          include: [
+            {
+              model: db.Specialty,
+              as: "specialtyData",
+              attributes: {
+                exclude: ["createdAt", "updatedAt"],
+              },
+            },
+            {
+              model: db.Clinic,
+              as: "clinicData",
+              attributes: {
+                exclude: ["email", "createdAt", "updatedAt"],
+              },
+            },
+          ],
+          nest: true,
+        });
+      }
+      resolve({
+        message: Label.SUCCESS,
+        success: true,
+        data: listDoctorLelate,
+      });
+    } catch (err) {
+      console.log("err", err);
+      reject();
+    }
+  });
+};
+
 module.exports = {
   getDoctor: getDoctor,
   filterDoctor: filterDoctor,
+  getRelateDoctor: getRelateDoctor,
   filterFeaturedDoctor: filterFeaturedDoctor,
 };
