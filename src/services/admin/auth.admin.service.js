@@ -121,7 +121,6 @@ const getNewAccessToken = async (req, res) => {
       if (!account) {
         resolve(res.sendStatus(403));
       }
-      console.log(">> check ", verifyRefreshToken(refreshToken));
       if (verifyRefreshToken(refreshToken)) {
         const tokens = generateTokens(account);
         updateRefreshToken(account.email, refreshToken);

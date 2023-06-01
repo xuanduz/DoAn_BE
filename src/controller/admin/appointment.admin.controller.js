@@ -1,35 +1,5 @@
 import appointmentAdminService from "../../services/admin/appointment.admin.service";
 
-// const addNewClinic = async (req, res) => {
-//   try {
-//     const result = await clinicAdminService.addNewClinic(req.body);
-//     return res.status(200).json(result);
-//   } catch (err) {
-//     console.log("err", err);
-//     return res.sendStatus(403);
-//   }
-// };
-
-// const addNewClinic = async (req, res) => {
-//   try {
-//     const result = await clinicAdminService.addNewClinic(req.body);
-//     return res.status(200).json(result);
-//   } catch (err) {
-//     console.log("err", err);
-//     return res.sendStatus(403);
-//   }
-// };
-
-// const getClinic = async (req, res) => {
-//   try {
-//     const result = await clinicAdminService.getClinic(req.params.id);
-//     return res.status(200).json(result);
-//   } catch (err) {
-//     console.log("err", err);
-//     return res.sendStatus(403);
-//   }
-// };
-
 const filterAppointment = async (req, res) => {
   try {
     const result = await appointmentAdminService.filterAppointment(req.body);
@@ -60,9 +30,19 @@ const editStatus = async (req, res) => {
   }
 };
 
+const getAppointmentDetail = async (req, res) => {
+  try {
+    const result = await appointmentAdminService.getAppointmentDetail(req.params.id);
+    return res.status(200).json(result);
+  } catch (err) {
+    console.log("err", err);
+    return res.sendStatus(403);
+  }
+};
+
 const deleteAppointment = async (req, res) => {
   try {
-    const result = await clinicAdminService.deleteAppointment(req.params.id);
+    const result = await appointmentAdminService.deleteAppointment(req.params.id);
     return res.status(200).json(result);
   } catch (err) {
     console.log("err", err);
@@ -75,4 +55,5 @@ module.exports = {
   filterAppointment: filterAppointment,
   editAppointment: editAppointment,
   deleteAppointment: deleteAppointment,
+  getAppointmentDetail: getAppointmentDetail,
 };

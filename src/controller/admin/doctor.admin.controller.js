@@ -20,6 +20,16 @@ const getDoctor = async (req, res) => {
   }
 };
 
+const getDoctorByClinic = async (req, res) => {
+  try {
+    const result = await doctorAdminService.getDoctorByClinic(req.params.id);
+    return res.status(200).json(result);
+  } catch (err) {
+    console.log("err", err);
+    return res.sendStatus(403);
+  }
+};
+
 const filterDoctor = async (req, res) => {
   try {
     const result = await doctorAdminService.filterDoctor(req.body);
@@ -56,4 +66,5 @@ module.exports = {
   filterDoctor: filterDoctor,
   editDoctor: editDoctor,
   deleteDoctor: deleteDoctor,
+  getDoctorByClinic: getDoctorByClinic,
 };

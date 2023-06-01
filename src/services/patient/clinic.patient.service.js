@@ -124,6 +124,29 @@ const getClinic = async (clinicId) => {
   });
 };
 
+const getClinicByProvince = async (provinceKey) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const clinic = await db.Clinic.findAll({
+        where: {
+          provinceKey: provinceKey,
+        },
+        attributes: {
+          exclude: ["email", "describe", "descriptionHTML"],
+        },
+      });
+      resolve({
+        message: Label.SUCCESS,
+        success: true,
+        data: clinic,
+      });
+    } catch (err) {
+      console.log("err", err);
+      reject();
+    }
+  });
+};
+
 const getAllClinic = async () => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -155,5 +178,6 @@ module.exports = {
   filterClinic: filterClinic,
   getClinic: getClinic,
   getAllClinic: getAllClinic,
+  getClinicByProvince: getClinicByProvince,
   filterFeaturedClinic: filterFeaturedClinic,
 };

@@ -10,6 +10,16 @@ const booking = async (req, res) => {
   }
 };
 
+const bookingDirect = async (req, res) => {
+  try {
+    const result = await bookingPatientService.bookingDirect(req.body);
+    return res.status(200).json(result);
+  } catch (err) {
+    console.log("err", err);
+    return res.sendStatus(403);
+  }
+};
+
 const getHistoryPatient = async (req, res) => {
   try {
     const result = await bookingPatientService.getHistoryPatient(req.params.id);
@@ -22,5 +32,6 @@ const getHistoryPatient = async (req, res) => {
 
 module.exports = {
   booking: booking,
+  bookingDirect: bookingDirect,
   getHistoryPatient: getHistoryPatient,
 };

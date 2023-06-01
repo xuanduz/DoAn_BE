@@ -11,6 +11,10 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "doctorId",
         as: "doctorData",
       });
+      Appointment.belongsTo(models.Clinic, {
+        foreignKey: "clinicId",
+        as: "clinicData",
+      });
       Appointment.belongsTo(models.Code, {
         foreignKey: "statusKey",
         targetKey: "key",
@@ -31,6 +35,7 @@ module.exports = (sequelize, DataTypes) => {
   Appointment.init(
     {
       doctorId: DataTypes.INTEGER,
+      clinicId: DataTypes.INTEGER,
       patientId: DataTypes.INTEGER,
       statusKey: DataTypes.STRING,
       date: DataTypes.STRING,

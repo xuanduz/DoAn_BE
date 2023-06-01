@@ -43,6 +43,11 @@ let initWebRoutes = (app) => {
   router.post(`${RouteName.ADMIN}/doctor/filter`, verifyToken, doctorAdminController.filterDoctor);
   router.post(`${RouteName.ADMIN}/doctor/edit`, verifyToken, doctorAdminController.editDoctor);
   router.delete(`${RouteName.ADMIN}/doctor/:id`, verifyToken, doctorAdminController.deleteDoctor);
+  router.get(
+    `${RouteName.ADMIN}/doctor/get-by-clinic/:id`,
+    verifyToken,
+    doctorAdminController.getDoctorByClinic
+  );
 
   router.post(
     `${RouteName.ADMIN}/specialty/filter`,
@@ -86,6 +91,12 @@ let initWebRoutes = (app) => {
     verifyToken,
     appointmentAdminController.editStatus
   );
+  router.get(
+    `${RouteName.ADMIN}/appointment/:id`,
+    verifyToken,
+    appointmentAdminController.getAppointmentDetail
+  );
+
   router.delete(
     `${RouteName.ADMIN}/appointment/:id`,
     verifyToken,
@@ -120,10 +131,19 @@ let initWebRoutes = (app) => {
   router.get(`${RouteName.PATIENT}/doctor/relate/:id`, doctorPatientController.getRelateDoctor);
   router.post(`${RouteName.PATIENT}/clinic/filter`, clinicPatientController.filterClinic);
   router.get(`${RouteName.PATIENT}/clinic/:id`, clinicPatientController.getClinic);
+  router.get(
+    `${RouteName.PATIENT}/clinic/getByProvince/:provinceKey`,
+    clinicPatientController.getClinicByProvince
+  );
 
   router.post(`${RouteName.PATIENT}/specialty/filter`, specialtyPatientController.filterSpecialty);
 
   router.post(`${RouteName.PATIENT}/booking`, verifyToken, appointmentPatientController.booking);
+  router.post(
+    `${RouteName.PATIENT}/booking-direct`,
+    verifyToken,
+    appointmentPatientController.bookingDirect
+  );
 
   router.get(
     `${RouteName.PATIENT}/history/:id`,

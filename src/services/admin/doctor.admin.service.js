@@ -85,6 +85,25 @@ const getDoctor = async (doctorId) => {
   });
 };
 
+const getDoctorByClinic = async (clinicId) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const doctorsData = await db.Doctor.findAll({
+        where: { clinicId: clinicId },
+        raw: true,
+      });
+      resolve({
+        message: Label.SUCCESS,
+        success: true,
+        data: doctorsData,
+      });
+    } catch (err) {
+      console.log("err", err);
+      reject();
+    }
+  });
+};
+
 const filterDoctor = async (filter) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -250,4 +269,5 @@ module.exports = {
   filterDoctor: filterDoctor,
   editDoctor: editDoctor,
   deleteDoctor: deleteDoctor,
+  getDoctorByClinic: getDoctorByClinic,
 };

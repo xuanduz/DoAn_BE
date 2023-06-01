@@ -49,9 +49,9 @@ const getPatient = async (id) => {
         attributes: {
           exclude: ["createdAt", "updatedAt", "accessToken", "refreshToken"],
         },
-        includes: [
+        include: [
           {
-            odel: db.Code,
+            model: db.Code,
             as: "provincePatientData",
             attributes: {
               exclude: ["updatedAt", "createdAt"],
@@ -61,7 +61,7 @@ const getPatient = async (id) => {
         nest: true,
       });
       resolve({
-        message: Label.UPDATE_SUCCESS,
+        message: Label.SUCCESS,
         success: true,
         data: patient,
       });

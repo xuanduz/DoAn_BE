@@ -47,6 +47,36 @@ const booking = async (bookingData) => {
   });
 };
 
+const bookingDirect = async (bookingData) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const { clinicId, provinceKey, patientData, date, time, timeSlot, reason } = bookingData;
+      await db.Patient.update(patientData, {
+        where: {
+          id: patientData.id,
+        },
+      });
+      await db.Appointment.create({
+        statusKey: "S1",
+        date: date,
+        time: time,
+        patientId: patientData.id,
+        clinicId: clinicId,
+        timeSlot: timeSlot,
+        reason: reason,
+        bookingType: "B1",
+      });
+      resolve({
+        message: Label.BOOKING_SUCCESS,
+        success: true,
+      });
+    } catch (err) {
+      console.log("err", err);
+      reject();
+    }
+  });
+};
+
 const getHistoryPatient = async (patientId) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -59,9 +89,16 @@ const getHistoryPatient = async (patientId) => {
             model: db.Doctor,
             as: "doctorData",
             attributes: {
-              exclude: ["createdAt", "updatedAt", "password", "refreshToken", "accessToken"],
+              exclude: [
+                "createdAt",
+                "updatedAt",
+                "password",
+                "refreshToken",
+                "accessToken",
+                "descriptionHTML",
+              ],
             },
-            includes: [
+            include: [
               {
                 model: db.Code,
                 as: "positionData",
@@ -69,7 +106,21 @@ const getHistoryPatient = async (patientId) => {
                   exclude: ["createdAt", "updatedAt"],
                 },
               },
+              {
+                model: db.Clinic,
+                as: "clinicData",
+                attributes: {
+                  exclude: ["createdAt", "updatedAt", "descriptionHTML", "email"],
+                },
+              },
             ],
+          },
+          {
+            model: db.Clinic,
+            as: "clinicData",
+            attributes: {
+              exclude: ["createdAt", "updatedAt", "descriptionHTML", "email"],
+            },
           },
           {
             model: db.Code,
@@ -117,5 +168,6 @@ const getHistoryPatient = async (patientId) => {
 
 module.exports = {
   booking: booking,
+  bookingDirect: bookingDirect,
   getHistoryPatient: getHistoryPatient,
 };

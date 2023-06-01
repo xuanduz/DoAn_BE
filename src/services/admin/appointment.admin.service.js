@@ -55,6 +55,97 @@ const getClinic = async (clinicId) => {
   });
 };
 
+const getAppointmentDetail = async (id) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const appointment = await db.Appointment.findOne({
+        where: {
+          id: id,
+        },
+        include: [
+          {
+            model: db.Patient,
+            as: "patientData",
+            attributes: {
+              exclude: ["createdAt", "updatedAt", "password", "accessToken", "refreshToken"],
+            },
+            include: [
+              {
+                model: db.Code,
+                as: "provincePatientData",
+                attributes: {
+                  exclude: ["createdAt", "updatedAt"],
+                },
+              },
+            ],
+          },
+          {
+            model: db.Code,
+            as: "timeData",
+            attributes: {
+              exclude: ["createdAt", "updatedAt"],
+            },
+          },
+          {
+            model: db.Code,
+            as: "statusData",
+            attributes: {
+              exclude: ["createdAt", "updatedAt"],
+            },
+          },
+          {
+            model: db.Code,
+            as: "bookingData",
+            attributes: {
+              exclude: ["createdAt", "updatedAt"],
+            },
+          },
+          {
+            model: db.Doctor,
+            as: "doctorData",
+            attributes: {
+              exclude: [
+                "createdAt",
+                "updatedAt",
+                "password",
+                "accessToken",
+                "refreshToken",
+                "describe",
+                "descriptionHTML",
+              ],
+            },
+            include: [
+              {
+                model: db.Clinic,
+                as: "clinicData",
+                attributes: {
+                  exclude: ["createdAt", "updatedAt", "descriptionHTML", "describe"],
+                },
+              },
+            ],
+          },
+          {
+            model: db.Clinic,
+            as: "clinicData",
+            attributes: {
+              exclude: ["createdAt", "updatedAt", "descriptionHTML", "describe"],
+            },
+          },
+        ],
+        nest: true,
+      });
+      resolve({
+        message: Label.SUCCESS,
+        success: true,
+        data: appointment,
+      });
+    } catch (err) {
+      console.log("err", err);
+      reject();
+    }
+  });
+};
+
 const filterAppointment = async (filter) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -131,6 +222,21 @@ const filterAppointment = async (filter) => {
               exclude: ["createdAt", "updatedAt"],
             },
           },
+          // {
+          //   model: db.Doctor,
+          //   as: "doctorData",
+          //   attributes: {
+          //     exclude: [
+          //       "createdAt",
+          //       "updatedAt",
+          //       "password",
+          //       "accessToken",
+          //       "refreshToken",
+          //       "describe",
+          //       "descriptionHTML",
+          //     ],
+          //   },
+          // },
         ],
         nest: true,
       });
@@ -187,7 +293,7 @@ const editAppointment = async (appointmentInfo) => {
             success: false,
           });
         } else {
-          // if (appointmentInfo.statusKey != 'S1')
+          // update schedule doctor after accept patient info
           const scheduleExist = await db.Schedule.findOne({
             where: {
               doctorId: appointment.dataValues.doctorId,
@@ -272,5 +378,6 @@ module.exports = {
   filterAppointment: filterAppointment,
   editAppointment: editAppointment,
   editStatus: editStatus,
+  getAppointmentDetail: getAppointmentDetail,
   deleteAppointment: deleteAppointment,
 };

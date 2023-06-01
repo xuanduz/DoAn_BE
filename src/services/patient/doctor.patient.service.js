@@ -224,18 +224,19 @@ const getDoctor = async (doctorId) => {
         group: ["date"],
         raw: true,
       });
+      console.log("listDate", listDate, listScheduleValid);
       Promise.all(listScheduleValid).then(async (listSche) => {
         const listScheValue = listSche.length ? listSche.map((sche) => sche.date) : [];
         const querySchedule = listSche.length
           ? {
               where: {
                 currentNumber: 0,
-                date: [listScheValue],
+                date: listScheValue,
               },
               required: false,
             }
           : {
-              required: false,
+              required: true,
             };
 
         const doctorData = await db.Doctor.findOne({
@@ -253,16 +254,6 @@ const getDoctor = async (doctorId) => {
                 exclude: ["updatedAt", "createdAt", "currentNumber", "maxNumber"],
               },
               ...querySchedule,
-              // includes: [
-              //   {
-              //     model: db.Code,
-              //     as: "timeData",
-              //     attributes: {
-              //       exclude: ["updatedAt", "createdAt"],
-              //     },
-              //     required: true,
-              //   },
-              // ],
             },
             {
               model: db.Specialty,
@@ -322,7 +313,7 @@ const getRelateDoctor = async (doctorId) => {
       let listDoctorLelateIds = doctors
         .map((doctor) => doctor.doctorId)
         .filter((spec) => spec != doctorId);
-      console.log("listDoctorLelateIds", listDoctorLelateIds);
+
       if (listDoctorLelateIds.length) {
         listDoctorLelate = await db.Doctor.findAll({
           offset: 0,
