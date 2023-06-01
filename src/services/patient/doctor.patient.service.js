@@ -1,6 +1,6 @@
 import db from "../../models";
 import { Label } from "../../utils/labels/label";
-import { getPageAmount, getQueryWithId } from "../../utils/pagingData";
+import { getListDateNextWeek, getPageAmount, getQueryWithId } from "../../utils/pagingData";
 const { Op } = require("sequelize");
 
 const filterDoctor = async (filter) => {
@@ -206,37 +206,28 @@ const filterFeaturedDoctor = async (filter) => {
 const getDoctor = async (doctorId) => {
   return new Promise(async (resolve, reject) => {
     try {
-      // Lấy lịch mai + 6 ngày nữa
-      var d = new Date();
-      const listDate = Array(7)
-        .fill(0)
-        .map((item, idx) => {
-          d.setDate(d.getDate() + 1);
-          return d.toLocaleDateString("pt-br").split("/").join("-");
-        });
-
       const listScheduleValid = await db.Schedule.findAll({
         where: {
           doctorId: doctorId,
-          date: listDate,
+          date: getListDateNextWeek(),
         },
         attributes: ["date"],
         group: ["date"],
         raw: true,
       });
-      console.log("listDate", listDate, listScheduleValid);
+
       Promise.all(listScheduleValid).then(async (listSche) => {
         const listScheValue = listSche.length ? listSche.map((sche) => sche.date) : [];
         const querySchedule = listSche.length
           ? {
               where: {
                 currentNumber: 0,
-                date: listScheValue,
+                date: getListDateNextWeek(),
               },
-              required: false,
+              required: true,
             }
           : {
-              required: true,
+              required: false,
             };
 
         const doctorData = await db.Doctor.findOne({

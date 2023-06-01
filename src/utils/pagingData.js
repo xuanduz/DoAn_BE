@@ -18,3 +18,15 @@ export const getQueryWithId = (id) => {
         required: false,
       };
 };
+
+// Lấy lịch mai + 6 ngày nữa
+export const getListDateNextWeek = () => {
+  var d = new Date();
+  const listDate = Array(7)
+    .fill(0)
+    .map((item, idx) => {
+      d.setDate(d.getDate() + 1);
+      return d.toLocaleDateString("pt-br").split("/").join("-");
+    });
+  return listDate;
+};

@@ -1,6 +1,6 @@
 import db from "../../models";
 import { Label } from "../../utils/labels/label";
-import { getListData, getPageAmount } from "../../utils/pagingData";
+import { getPageAmount } from "../../utils/pagingData";
 const { Op } = require("sequelize");
 
 const addNewClinic = async (clinicData) => {
