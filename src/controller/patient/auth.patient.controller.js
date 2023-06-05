@@ -10,6 +10,36 @@ let register = async (req, res) => {
   }
 };
 
+let forgotPassword = async (req, res) => {
+  try {
+    let result = await authPatientService.forgotPassword(req.body);
+    return res.status(200).json(result);
+  } catch (err) {
+    console.log("err ", err);
+    return res.sendStatus(403);
+  }
+};
+
+let verifyCode = async (req, res) => {
+  try {
+    let result = await authPatientService.verifyCode(req.body);
+    return res.status(200).json(result);
+  } catch (err) {
+    console.log("err ", err);
+    return res.sendStatus(403);
+  }
+};
+
+let setNewPassword = async (req, res) => {
+  try {
+    let result = await authPatientService.setNewPassword(req.body);
+    return res.status(200).json(result);
+  } catch (err) {
+    console.log("err ", err);
+    return res.sendStatus(403);
+  }
+};
+
 let login = async (req, res) => {
   try {
     let result = await authPatientService.login(req.body);
@@ -47,4 +77,7 @@ module.exports = {
   login: login,
   logout: logout,
   getNewAccessToken: getNewAccessToken,
+  forgotPassword: forgotPassword,
+  verifyCode: verifyCode,
+  setNewPassword: setNewPassword,
 };

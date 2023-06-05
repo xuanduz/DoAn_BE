@@ -108,6 +108,9 @@ let initWebRoutes = (app) => {
   router.post(`${RouteName.PATIENT}/login`, authPatientController.login);
   router.delete(`${RouteName.PATIENT}/logout`, verifyToken, authPatientController.logout);
   router.post(`${RouteName.PATIENT}/token`, authPatientController.getNewAccessToken);
+  router.post(`${RouteName.PATIENT}/forgot-password`, authPatientController.forgotPassword);
+  router.post(`${RouteName.PATIENT}/verify-code`, authPatientController.verifyCode);
+  router.post(`${RouteName.PATIENT}/new-password`, authPatientController.setNewPassword);
 
   router.get(`${RouteName.PATIENT}/province/all`, patientController.getAllProvince);
   router.get(`${RouteName.PATIENT}/position/all`, patientController.getAllPosition);
@@ -139,10 +142,19 @@ let initWebRoutes = (app) => {
   router.post(`${RouteName.PATIENT}/specialty/filter`, specialtyPatientController.filterSpecialty);
 
   router.post(`${RouteName.PATIENT}/booking`, verifyToken, appointmentPatientController.booking);
+
+  router.post(`${RouteName.PATIENT}/verify-email`, appointmentPatientController.verifyEmail);
+
   router.post(
     `${RouteName.PATIENT}/booking-direct`,
     verifyToken,
     appointmentPatientController.bookingDirect
+  );
+
+  router.delete(
+    `${RouteName.PATIENT}/booking/delete/:id`,
+    verifyToken,
+    appointmentPatientController.deleteBooking
   );
 
   router.get(

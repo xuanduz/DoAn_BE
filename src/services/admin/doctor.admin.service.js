@@ -62,7 +62,18 @@ const getDoctor = async (doctorId) => {
     try {
       const doctorData = await db.Doctor.findOne({
         where: { id: doctorId },
-        raw: true,
+        attributes: {
+          exclude: ["password", "accessToken", "refreshToken"],
+        },
+        include: [
+          {
+            model: db.Specialty,
+            as: "specialtyData",
+            attributes: {
+              exclude: ["createdAt", "updatedAt"],
+            },
+          },
+        ],
       });
       let result = {};
       if (!doctorData) {

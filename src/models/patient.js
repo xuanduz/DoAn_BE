@@ -25,6 +25,7 @@ module.exports = (sequelize, DataTypes) => {
       provinceKey: DataTypes.STRING,
       addressDetail: DataTypes.STRING,
 
+      codePassword: DataTypes.STRING,
       accessToken: DataTypes.STRING,
       refreshToken: DataTypes.STRING,
     },

@@ -1,7 +1,6 @@
 import db from "../../models";
 import { Label } from "../../utils/labels/label";
-const { Op } = require("sequelize");
-import moment from "moment";
+import emailService from "./email.patient.service";
 
 const booking = async (bookingData) => {
   return new Promise(async (resolve, reject) => {
@@ -25,21 +24,141 @@ const booking = async (bookingData) => {
           success: false,
         });
       } else {
-        await db.Appointment.create({
-          statusKey: statusKey || "S1",
-          date: date,
-          time: time,
-          patientId: patientData.id,
-          doctorId: doctorId,
-          timeSlot: timeSlot,
-          reason: reason,
-          bookingType: bookingType || "B1",
+        // check duplicate appointment
+        const existAppointment = await db.Appointment.findOne({
+          where: {
+            patientId: patientData.id,
+            date: date,
+            timeSlot: timeSlot,
+          },
+        });
+        if (existAppointment) {
+          resolve({
+            message: Label.BOOKING_DUPLICATE,
+            success: false,
+          });
+        } else {
+          const timeData = await db.Code.findOne({
+            where: {
+              key: timeSlot,
+            },
+          });
+          let dataSend = {
+            receiverEmail: patientData.email,
+            fullName: patientData.fullName,
+            time: timeData.value,
+            doctorName: existDoctor.fullName,
+            //---------
+            timeSlot: timeSlot,
+            date: date,
+            doctorId: doctorId,
+            patientId: patientData.id,
+          };
+          await emailService.sendEmailToVerify(dataSend);
+          await db.Appointment.create({
+            statusKey: statusKey || "S1",
+            date: date,
+            time: time,
+            patientId: patientData.id,
+            doctorId: doctorId,
+            timeSlot: timeSlot,
+            reason: reason,
+            bookingType: bookingType || "B1",
+          });
+          resolve({
+            message: Label.BOOKING_SUCCESS,
+            success: true,
+          });
+        }
+      }
+    } catch (err) {
+      console.log("err", err);
+      reject();
+    }
+  });
+};
+
+const verifyEmail = async (appointmentInfo) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      // check appointment deleted before verify
+      // update schedule doctor after accept patient info
+      // 1. update curentNumber
+      // 2. update statusKey
+      const scheduleExist = await db.Schedule.findOne({
+        where: {
+          doctorId: appointmentInfo.doctorId,
+          date: appointmentInfo.date,
+          timeSlot: appointmentInfo.timeSlot || "",
+        },
+      });
+      if (scheduleExist.dataValues.currentNumber == 1) {
+        resolve({
+          message: Label.VERIFIED_EMAIL,
+          success: false,
+        });
+      } else {
+        await db.Appointment.update(
+          {
+            statusKey: "S2",
+          },
+          {
+            where: {
+              patientId: appointmentInfo.patientId,
+              doctorId: appointmentInfo.doctorId,
+              date: appointmentInfo.date,
+              timeSlot: appointmentInfo.timeSlot,
+            },
+          }
+        );
+        await scheduleExist.update({
+          ...scheduleExist,
+          currentNumber: 1,
         });
         resolve({
-          message: Label.BOOKING_SUCCESS,
+          message: Label.VERIFY_EMAIL_SUCCESS,
           success: true,
         });
       }
+    } catch (err) {
+      console.log("err", err);
+      reject();
+    }
+  });
+};
+
+const deleteBooking = async (bookingId) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const appointmentInfo = await db.Appointment.findOne({
+        where: {
+          id: bookingId,
+        },
+      });
+      const { doctorId, timeSlot, date, statusKey } = appointmentInfo;
+      await db.Appointment.destroy({
+        where: { id: bookingId },
+      });
+      if (statusKey == "S1" || statusKey == "S2") {
+        await db.Appointment.destroy({
+          where: { id: bookingId },
+        });
+        const schedule = await db.Schedule.findOne({
+          where: {
+            doctorId: doctorId,
+            date: date,
+            timeSlot: timeSlot,
+          },
+        });
+        await schedule.update({
+          currentNumber: 0,
+        });
+      }
+
+      resolve({
+        message: Label.DELETE_SUCCESS,
+        success: true,
+      });
     } catch (err) {
       console.log("err", err);
       reject();
@@ -170,4 +289,6 @@ module.exports = {
   booking: booking,
   bookingDirect: bookingDirect,
   getHistoryPatient: getHistoryPatient,
+  deleteBooking: deleteBooking,
+  verifyEmail: verifyEmail,
 };

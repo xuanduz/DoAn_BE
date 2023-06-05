@@ -23,4 +23,12 @@ export const Label = {
   BOOKING_FAIL_NOT_EXIST_DOCTOR:
     "Đặt lịch hẹn không thành công do bác sĩ bạn chọn không còn tồn tại, vui lòng chọn bác sĩ khác",
   NOT_EXIST_APPOINTMENT: "Không tồn tại lịch hẹn",
+  BOOKING_DUPLICATE:
+    "Bạn đã đặt lịch trước đó rồi, vui lòng kiểm tra trong phần Lịch sử khám bệnh để kiểm tra",
+  VERIFY_EMAIL_SUCCESS: "Xác nhận đặt lịch thành công !",
+  VERIFIED_EMAIL: "Bạn đã xác nhận đặt lịch rồi !",
+  CHECK_EMAIL: "Hãy kiểm tra email của bạn và nhập mã vào bên dưới",
+  WRONG_CODE: "Nhập mã sai, vui lòng kiểm tra lại !",
+  SUCCESS_CODE: "Nhập mã đúng, hãy nhập mật khẩu mới !",
+  UPDATE_SUCCESS: "Cập nhật thành công !",
 };

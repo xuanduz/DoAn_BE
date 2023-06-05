@@ -3,58 +3,6 @@ import { Label } from "../../utils/labels/label";
 import { getPageAmount } from "../../utils/pagingData";
 const { Op } = require("sequelize");
 
-const addNewClinic = async (clinicData) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const newClinic = await db.Clinic.create({
-        email: clinicData.email,
-        name: clinicData.name,
-        address: clinicData.address,
-        provinceKey: clinicData.provinceKey,
-        image: clinicData.image,
-        descriptionHTML: clinicData.descriptionHTML,
-        describe: clinicData.describe,
-      });
-      resolve({
-        message: Label.CREATE_ACCOUNT_SUCCESS,
-        success: true,
-        data: newClinic,
-      });
-    } catch (err) {
-      console.log("err", err);
-      reject();
-    }
-  });
-};
-
-const getClinic = async (clinicId) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const clinicData = await db.Clinic.findOne({
-        where: { id: clinicId },
-        raw: true,
-      });
-      let result = {};
-      if (!clinicData) {
-        result = {
-          message: Label.NOT_EXISTED_CLINIC,
-          success: false,
-        };
-      } else {
-        result = {
-          message: Label.SUCCESS,
-          success: true,
-          data: clinicData,
-        };
-      }
-      resolve(result);
-    } catch (err) {
-      console.log("err", err);
-      reject();
-    }
-  });
-};
-
 const getAppointmentDetail = async (id) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -373,8 +321,6 @@ const deleteAppointment = async (appointmentId) => {
 };
 
 module.exports = {
-  addNewClinic: addNewClinic,
-  getClinic: getClinic,
   filterAppointment: filterAppointment,
   editAppointment: editAppointment,
   editStatus: editStatus,

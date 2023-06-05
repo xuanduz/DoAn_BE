@@ -29,6 +29,7 @@ const createNewAccount = async (data) => {
           address: data.address,
           gender: data.gender,
           phoneNumber: data.phoneNumber,
+          role: data.role,
         });
         response = { message: Label.CREATE_ACCOUNT_SUCCESS, success: true };
       } else {
@@ -65,6 +66,7 @@ const login = async (data) => {
             success: true,
             accessToken: token.accessToken,
             refreshToken: token.refreshToken,
+            role: account.role,
           };
         } else {
           result = {

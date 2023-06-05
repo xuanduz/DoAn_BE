@@ -30,3 +30,11 @@ export const getListDateNextWeek = () => {
     });
   return listDate;
 };
+
+export const getCodePassword = (length) => {
+  let newCode = "";
+  for (let i = 1; i <= Array(length).length; i++) {
+    newCode += Math.floor(Math.random() * 9 + 1);
+  }
+  return newCode;
+};

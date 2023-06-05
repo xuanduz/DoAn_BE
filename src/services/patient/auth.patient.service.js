@@ -2,6 +2,8 @@ import db from "../../models";
 import Bcryptjs from "../../utils/auth/bcryptjs";
 import { generateTokens, verifyRefreshToken } from "../../utils/auth/token";
 import { Label } from "../../utils/labels/label";
+import { getCodePassword } from "../../utils/pagingData";
+import { sendEmailToNewPass } from "./email.patient.service";
 
 const resetToken = async (email) => {
   await db.Patient.update(
@@ -52,10 +54,7 @@ const login = async (data) => {
       });
       let result = {};
       if (account) {
-        let comparePassword = await Bcryptjs.comparePassword(
-          data.password,
-          account.password
-        );
+        let comparePassword = await Bcryptjs.comparePassword(data.password, account.password);
         if (comparePassword) {
           let token = generateTokens(account);
           await db.Patient.update(
@@ -84,6 +83,87 @@ const login = async (data) => {
         };
       }
       resolve(result);
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
+
+const forgotPassword = async (data) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const code = getCodePassword(6);
+      await db.Patient.update(
+        {
+          codePassword: code,
+        },
+        {
+          where: {
+            email: data.email,
+          },
+        }
+      );
+      await sendEmailToNewPass({
+        email: data.email,
+        code: code,
+      });
+      resolve({
+        message: Label.CHECK_EMAIL,
+        success: true,
+      });
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
+
+const verifyCode = async (data) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const patient = await db.Patient.findOne({
+        where: {
+          email: data.email,
+        },
+      });
+      if (patient.dataValues.codePassword != data.codePassword) {
+        resolve({
+          message: Label.WRONG_CODE,
+          success: false,
+        });
+      } else {
+        resolve({
+          message: Label.SUCCESS_CODE,
+          success: true,
+        });
+      }
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
+
+const setNewPassword = async (data) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      let hashedNewPassword = await Bcryptjs.hashPassword(data.newPassword);
+      await db.Patient.update(
+        {
+          password: hashedNewPassword,
+          codePassword: "",
+          refreshToken: null,
+          accessToken: null,
+        },
+        {
+          where: {
+            email: data.email,
+            codePassword: data.codePassword,
+          },
+        }
+      );
+      resolve({
+        message: Label.UPDATE_SUCCESS,
+        success: true,
+      });
     } catch (e) {
       reject(e);
     }
@@ -142,4 +222,7 @@ module.exports = {
   login: login,
   logout: logout,
   getNewAccessToken: getNewAccessToken,
+  forgotPassword: forgotPassword,
+  verifyCode: verifyCode,
+  setNewPassword: setNewPassword,
 };
