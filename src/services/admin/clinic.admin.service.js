@@ -32,7 +32,15 @@ const getClinic = async (clinicId) => {
     try {
       const clinicData = await db.Clinic.findOne({
         where: { id: clinicId },
-        raw: true,
+        include: [
+          {
+            model: db.Specialty,
+            as: "specialtyData",
+            attributes: {
+              exclude: ["createdAt", "updatedAt"],
+            },
+          },
+        ],
       });
       let result = {};
       if (!clinicData) {
@@ -115,6 +123,22 @@ const editClinic = async (clinicInfo) => {
           success: false,
         });
       }
+      const specialtiesRequest = clinicInfo.specialtyData.map((spec) => ({
+        specialtyId: spec.id,
+        clinicId: clinicInfo.id,
+      }));
+      await db.Clinic_Specialty.destroy({
+        where: {
+          clinicId: clinicInfo.id,
+        },
+      });
+      await specialtiesRequest.map(async (clinic_spec) => {
+        await db.Clinic_Specialty.create({
+          clinicId: clinic_spec.clinicId,
+          specialtyId: clinic_spec.specialtyId,
+        });
+      });
+
       const newClinic = await clinic.update(clinicInfo);
       resolve({
         message: Label.UPDATE_SUCCESS,

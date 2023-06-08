@@ -95,7 +95,7 @@ const getClinic = async (clinicId) => {
             model: db.Doctor,
             as: "doctorData",
             offset: 0,
-            limit: 3,
+            limit: 6,
             attributes: {
               exclude: ["createdAt", "updatedAt", "password", "accessToken", "refreshToken"],
             },
@@ -107,7 +107,23 @@ const getClinic = async (clinicId) => {
                   exclude: ["createdAt", "updatedAt"],
                 },
               },
+              {
+                model: db.Specialty,
+                as: "specialtyData",
+                attributes: {
+                  exclude: ["descriptionHTML", "createdAt", "updatedAt"],
+                },
+                required: false,
+              },
             ],
+          },
+          {
+            model: db.Specialty,
+            as: "specialtyData",
+            attributes: {
+              exclude: ["descriptionHTML", "createdAt", "updatedAt"],
+            },
+            required: false,
           },
         ],
         nest: true,

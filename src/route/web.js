@@ -17,13 +17,15 @@ import authDoctorController from "../controller/doctor/auth.doctor.controller";
 import doctorController from "../controller/doctor/doctor.controller";
 import scheduleDoctorController from "../controller/doctor/schedule.doctor.controller";
 import appointmentDoctorController from "../controller/doctor/appointment.doctor.controller";
-
 import appointmentDoctorService from "../services/doctor/appointment.doctor.service";
 
 import { RouteName } from "./route-name";
 import { verifyToken } from "../utils/auth/token";
 
+import multer from "multer";
+
 let router = express.Router();
+const upload = multer({ storage: multer.memoryStorage() });
 
 let initWebRoutes = (app) => {
   // ------------------ Admin -----------------------
@@ -194,8 +196,7 @@ let initWebRoutes = (app) => {
   );
   router.post(
     `${RouteName.DOCTOR}/appointment/edit`,
-    verifyToken,
-    appointmentDoctorService.uploadFile,
+    upload.single("filename"),
     appointmentDoctorController.editAppointment
   );
 

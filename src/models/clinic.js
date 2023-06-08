@@ -12,6 +12,11 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: "key",
         as: "provinceData",
       });
+      Clinic.belongsToMany(models.Specialty, {
+        through: "clinic_specialty",
+        foreignKey: "clinicId",
+        as: "specialtyData",
+      });
     }
   }
   Clinic.init(

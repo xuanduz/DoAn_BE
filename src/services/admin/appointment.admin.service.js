@@ -1,4 +1,5 @@
 import db from "../../models";
+import { deleteFile } from "../../utils/firebase-function";
 import { Label } from "../../utils/labels/label";
 import { getPageAmount } from "../../utils/pagingData";
 const { Op } = require("sequelize");
@@ -306,9 +307,18 @@ const editStatus = async (appointmentInfo) => {
 const deleteAppointment = async (appointmentId) => {
   return new Promise(async (resolve, reject) => {
     try {
+      const appointmentInfo = await db.Appointment.findOne({
+        where: {
+          id: appointmentId,
+        },
+      });
+      const { resultFile } = appointmentInfo;
       await db.Appointment.destroy({
         where: { id: appointmentId },
       });
+      if (resultFile) {
+        await deleteFile(resultFile);
+      }
       resolve({
         message: Label.DELETE_SUCCESS,
         success: true,

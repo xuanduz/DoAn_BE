@@ -1,4 +1,5 @@
 import db from "../../models";
+import { deleteFile } from "../../utils/firebase-function";
 import { Label } from "../../utils/labels/label";
 import emailService from "./email.patient.service";
 
@@ -135,14 +136,11 @@ const deleteBooking = async (bookingId) => {
           id: bookingId,
         },
       });
-      const { doctorId, timeSlot, date, statusKey } = appointmentInfo;
+      const { doctorId, timeSlot, date, statusKey, resultFile } = appointmentInfo;
       await db.Appointment.destroy({
         where: { id: bookingId },
       });
       if (statusKey == "S1" || statusKey == "S2") {
-        await db.Appointment.destroy({
-          where: { id: bookingId },
-        });
         const schedule = await db.Schedule.findOne({
           where: {
             doctorId: doctorId,
@@ -153,6 +151,10 @@ const deleteBooking = async (bookingId) => {
         await schedule.update({
           currentNumber: 0,
         });
+      } else {
+        if (resultFile) {
+          await deleteFile(resultFile);
+        }
       }
 
       resolve({
