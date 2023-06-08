@@ -227,6 +227,9 @@ const getDoctor = async (doctorId) => {
               required: true,
             }
           : {
+              where: {
+                date: "",
+              },
               required: false,
             };
 
