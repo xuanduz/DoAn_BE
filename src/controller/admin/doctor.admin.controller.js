@@ -2,7 +2,7 @@ import doctorAdminService from "../../services/admin/doctor.admin.service";
 
 const addNewDoctor = async (req, res) => {
   try {
-    const result = await doctorAdminService.addNewDoctor(req.body);
+    const result = await doctorAdminService.addNewDoctor(req.body, req.file);
     return res.status(200).json(result);
   } catch (err) {
     console.log("err", err);
@@ -42,7 +42,7 @@ const filterDoctor = async (req, res) => {
 
 const editDoctor = async (req, res) => {
   try {
-    const result = await doctorAdminService.editDoctor(req.body);
+    const result = await doctorAdminService.editDoctor(req.body, req.file);
     return res.status(200).json(result);
   } catch (err) {
     console.log("err", err);

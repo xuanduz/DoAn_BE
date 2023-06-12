@@ -1,10 +1,11 @@
 import db from "../../models";
 import Bcryptjs from "../../utils/auth/bcryptjs";
+import { deleteFile, uploadImage } from "../../utils/firebase-function";
 import { Label } from "../../utils/labels/label";
 import { getListData, getPageAmount, getQueryWithId } from "../../utils/pagingData";
 const { Op } = require("sequelize");
 
-const addNewDoctor = async (data) => {
+const addNewDoctor = async (data, file) => {
   return new Promise(async (resolve, reject) => {
     try {
       const doctorData = data;
@@ -19,6 +20,7 @@ const addNewDoctor = async (data) => {
           success: false,
         };
       } else {
+        const imageUrl = file ? await uploadImage(file) : "";
         const hashedPassword = await Bcryptjs.hashPassword(doctorData.password);
         const newDoctor = await db.Doctor.create({
           email: doctorData.email,
@@ -26,7 +28,7 @@ const addNewDoctor = async (data) => {
           fullName: doctorData.fullName,
           gender: doctorData.gender,
           phoneNumber: doctorData.phoneNumber,
-          image: doctorData.image,
+          image: imageUrl,
           price: doctorData.price,
           descriptionHTML: doctorData.descriptionHTML,
           describe: doctorData.describe,
@@ -35,13 +37,13 @@ const addNewDoctor = async (data) => {
 
           clinicId: doctorData.clinicId,
         });
-        if (doctorData.specialtyData.length) {
-          doctorData.specialtyData.map(async (spec) => {
-            await db.Doctor_Specialty.create({
-              doctorId: newDoctor.id,
-              specialtyId: spec.id,
-            });
-          });
+        const specialtyData = JSON.parse(doctorData.specialtyData);
+        if (specialtyData.length) {
+          const listDoctorSpecialty = specialtyData.map((spec) => ({
+            doctorId: newDoctor.id,
+            specialtyId: spec.id,
+          }));
+          await db.Doctor_Specialty.bulkCreate(listDoctorSpecialty);
         }
         result = {
           message: Label.CREATE_ACCOUNT_SUCCESS,
@@ -213,10 +215,9 @@ const editSpecialty = async (doctorInfo) => {
   const newSpecialties = specialtiesRequest.filter((specReq) =>
     specialtiesExist.includes((specExist) => specExist.id != specReq.id)
   );
-  console.log("newSpecialties", specialtiesExist, specialtiesRequest, newSpecialties);
 };
 
-const editDoctor = async (doctorInfo) => {
+const editDoctor = async (doctorInfo, file) => {
   return new Promise(async (resolve, reject) => {
     try {
       let doctor = await db.Doctor.findOne({
@@ -228,23 +229,31 @@ const editDoctor = async (doctorInfo) => {
           success: false,
         });
       }
-      const specialtiesRequest = doctorInfo.specialtyData.map((spec) => ({
-        specialtyId: spec.id,
-        doctorId: doctorInfo.id,
-      }));
-
+      const imageUrl = file ? await uploadImage(file) : "";
+      const specialtyData = doctorInfo.specialtyData ? JSON.parse(doctorInfo.specialtyData) : [];
+      let listDoctorSpecialty = [];
+      if (specialtyData.length) {
+        listDoctorSpecialty = specialtyData.map((spec) => ({
+          doctorId: doctorInfo.id,
+          specialtyId: spec.id,
+        }));
+      }
       await db.Doctor_Specialty.destroy({
         where: {
           doctorId: doctorInfo.id,
         },
       });
-      await specialtiesRequest.map(async (doctor_spec) => {
-        await db.Doctor_Specialty.create({
-          doctorId: doctor_spec.doctorId,
-          specialtyId: doctor_spec.specialtyId,
-        });
+      await db.Doctor_Specialty.bulkCreate(listDoctorSpecialty);
+      if (imageUrl) {
+        const oldUrl = doctor.dataValues.image;
+        if (oldUrl) {
+          await deleteFile(oldUrl);
+        }
+      }
+      const newDoctor = await doctor.update({
+        ...doctorInfo,
+        image: imageUrl,
       });
-      const newDoctor = await doctor.update(doctorInfo);
       resolve({
         message: Label.UPDATE_SUCCESS,
         success: true,
@@ -260,9 +269,14 @@ const editDoctor = async (doctorInfo) => {
 const deleteDoctor = async (doctorId) => {
   return new Promise(async (resolve, reject) => {
     try {
-      await db.Doctor.destroy({
+      const doctor = await db.Doctor.findOne({
         where: { id: doctorId },
       });
+      const oldUrl = doctor.dataValues.image;
+      if (oldUrl) {
+        await deleteFile(oldUrl);
+      }
+      await doctor.destroy();
       resolve({
         message: Label.DELETE_SUCCESS,
         success: true,

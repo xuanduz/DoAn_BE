@@ -64,3 +64,19 @@ export const deleteFile = async (oldUrl) => {
     }
   });
 };
+
+export const uploadImage = async (file) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const newFileName = Date.now() + path.extname(file.originalname);
+      const storageRef = ref(storage, `images/${newFileName}`);
+      uploadBytes(storageRef, file.buffer).then(async (snapshot) => {
+        const url = await getDownloadURL(snapshot.ref);
+        resolve(url);
+      });
+    } catch (err) {
+      console.log("err", err);
+      reject();
+    }
+  });
+};

@@ -1,25 +1,47 @@
 import db from "../../models";
+import { deleteFile, uploadImage } from "../../utils/firebase-function";
 import { Label } from "../../utils/labels/label";
 import { getListData, getPageAmount } from "../../utils/pagingData";
 const { Op } = require("sequelize");
 
-const addNewClinic = async (clinicData) => {
+const addNewClinic = async (clinicData, file) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const newClinic = await db.Clinic.create({
-        email: clinicData.email,
-        name: clinicData.name,
-        address: clinicData.address,
-        provinceKey: clinicData.provinceKey,
-        image: clinicData.image,
-        descriptionHTML: clinicData.descriptionHTML,
-        describe: clinicData.describe,
+      const checkExisted = await db.Clinic.findOne({
+        where: { email: clinicData.email },
+        raw: true,
       });
-      resolve({
-        message: Label.CREATE_CLINIC_SUCCESS,
-        success: true,
-        data: newClinic,
-      });
+      if (checkExisted) {
+        resolve({
+          message: Label.EXISTED_EMAIL,
+          success: false,
+        });
+      } else {
+        const imageUrl = file ? await uploadImage(file) : "";
+        const newClinic = await db.Clinic.create({
+          email: clinicData.email,
+          name: clinicData.name,
+          address: clinicData.address,
+          provinceKey: clinicData.provinceKey,
+          image: imageUrl,
+          descriptionHTML: clinicData.descriptionHTML,
+          describe: clinicData.describe,
+        });
+        const specialtyData = clinicData.specialtyData ? JSON.parse(clinicData.specialtyData) : [];
+        let listClinicSpecialty = [];
+        if (specialtyData.length) {
+          listClinicSpecialty = specialtyData.map((spec) => ({
+            clinicId: newClinic.id,
+            specialtyId: spec.id,
+          }));
+        }
+        await db.Clinic_Specialty.bulkCreate(listClinicSpecialty);
+        resolve({
+          message: Label.CREATE_CLINIC_SUCCESS,
+          success: true,
+          data: newClinic,
+        });
+      }
     } catch (err) {
       console.log("err", err);
       reject();
@@ -111,7 +133,7 @@ const filterClinic = async (filter) => {
   });
 };
 
-const editClinic = async (clinicInfo) => {
+const editClinic = async (clinicInfo, file) => {
   return new Promise(async (resolve, reject) => {
     try {
       let clinic = await db.Clinic.findOne({
@@ -123,23 +145,37 @@ const editClinic = async (clinicInfo) => {
           success: false,
         });
       }
-      const specialtiesRequest = clinicInfo.specialtyData.map((spec) => ({
-        specialtyId: spec.id,
-        clinicId: clinicInfo.id,
-      }));
+      const specialtyData = clinicInfo.specialtyData ? JSON.parse(clinicInfo.specialtyData) : [];
+      let listClinicSpecialty = [];
+      if (specialtyData.length) {
+        listClinicSpecialty = specialtyData.map((spec) => ({
+          clinicId: clinicInfo.id,
+          specialtyId: spec.id,
+        }));
+      }
       await db.Clinic_Specialty.destroy({
         where: {
           clinicId: clinicInfo.id,
         },
       });
-      await specialtiesRequest.map(async (clinic_spec) => {
-        await db.Clinic_Specialty.create({
-          clinicId: clinic_spec.clinicId,
-          specialtyId: clinic_spec.specialtyId,
-        });
-      });
-
-      const newClinic = await clinic.update(clinicInfo);
+      const imageUrl = file ? await uploadImage(file) : "";
+      await db.Clinic_Specialty.bulkCreate(listClinicSpecialty);
+      const clinicUpdate = {
+        name: clinicInfo.name,
+        email: clinicInfo.email,
+        provinceKey: clinicInfo.provinceKey,
+        address: clinicInfo.address,
+        image: imageUrl,
+        descriptionHTML: clinicInfo.descriptionHTML,
+        describe: clinicInfo.describe,
+      };
+      if (imageUrl) {
+        const oldUrl = clinic.dataValues.image;
+        if (oldUrl) {
+          await deleteFile(oldUrl);
+        }
+      }
+      const newClinic = await clinic.update(clinicUpdate);
       resolve({
         message: Label.UPDATE_SUCCESS,
         success: true,
@@ -155,9 +191,14 @@ const editClinic = async (clinicInfo) => {
 const deleteClinic = async (clinicId) => {
   return new Promise(async (resolve, reject) => {
     try {
-      await db.Clinic.destroy({
+      const clinic = await db.Clinic.findOne({
         where: { id: clinicId },
       });
+      const oldUrl = clinic.dataValues.image;
+      if (oldUrl) {
+        await deleteFile(oldUrl);
+      }
+      await clinic.destroy();
       resolve({
         message: Label.DELETE_SUCCESS,
         success: true,

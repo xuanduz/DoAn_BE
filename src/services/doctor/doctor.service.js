@@ -2,8 +2,9 @@ import db from "../../models";
 import { Label } from "../../utils/labels/label";
 import Bcryptjs from "../../utils/auth/bcryptjs";
 import { Op } from "sequelize";
+import { deleteFile, uploadImage } from "../../utils/firebase-function";
 
-const editDoctor = async (doctorInfo) => {
+const editDoctor = async (doctorInfo, file) => {
   return new Promise(async (resolve, reject) => {
     try {
       let doctor = await db.Doctor.findOne({
@@ -30,25 +31,37 @@ const editDoctor = async (doctorInfo) => {
           success: false,
         });
       } else {
-        const newDoctor = await doctor.update(doctorInfo);
+        const imageUrl = file ? await uploadImage(file) : "";
+        console.log(">>>> ", doctorInfo);
+        if (imageUrl) {
+          const oldUrl = doctor.dataValues.image;
+          if (oldUrl) {
+            await deleteFile(oldUrl);
+          }
+        }
+        await doctor.update({
+          ...doctorInfo,
+          image: imageUrl,
+        });
+        const specialtyData = doctorInfo.specialtyData ? JSON.parse(doctorInfo.specialtyData) : [];
+        let listDoctorSpecialty = [];
+        if (specialtyData.length) {
+          listDoctorSpecialty = specialtyData.map((spec) => ({
+            doctorId: doctorInfo.id,
+            specialtyId: spec.id,
+          }));
+        }
         await db.Doctor_Specialty.destroy({
           where: {
             doctorId: doctorInfo.id,
           },
         });
-        const listDoctorspecialty = doctorInfo.specialtyData.map((item) => ({
-          doctorId: doctorInfo.id,
-          specialtyId: item.id,
-        }));
-        const listDoctorspecialtyUpdated = await db.Doctor_Specialty.bulkCreate(
-          listDoctorspecialty
-        );
-        Promise.all(listDoctorspecialtyUpdated).then((data) => {
-          resolve({
-            message: Label.UPDATE_SUCCESS,
-            success: true,
-            data: doctor,
-          });
+        await db.Doctor_Specialty.bulkCreate(listDoctorSpecialty);
+
+        resolve({
+          message: Label.UPDATE_SUCCESS,
+          success: true,
+          data: doctor,
         });
       }
     } catch (err) {

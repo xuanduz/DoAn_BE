@@ -27,9 +27,30 @@ import multer from "multer";
 let router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
+/**
+ *
+ * @swagger
+ * /api/system-admin/register:
+ *   post:
+ *    summary: Get a user by ID
+ * responses:
+ *      '200':
+ *       description: A single user.
+ *      content:
+ *       application/json:
+ *        schema:
+ *         type: object
+ *        properties:
+ *         id:
+ *          type: integer
+ *       name:
+ *        type: string
+ */
 let initWebRoutes = (app) => {
   // ------------------ Admin -----------------------
+
   router.post(`${RouteName.ADMIN}/register`, verifyToken, authAdminController.register);
+
   router.post(`${RouteName.ADMIN}/login`, authAdminController.login);
   router.delete(`${RouteName.ADMIN}/logout`, verifyToken, authAdminController.logout);
   router.post(`${RouteName.ADMIN}/token`, authAdminController.getNewAccessToken);
@@ -40,10 +61,20 @@ let initWebRoutes = (app) => {
     adminController.changePasswordAdmin
   );
 
-  router.post(`${RouteName.ADMIN}/doctor/add-new`, verifyToken, doctorAdminController.addNewDoctor);
+  router.post(
+    `${RouteName.ADMIN}/doctor/add-new`,
+    verifyToken,
+    upload.single("filename"),
+    doctorAdminController.addNewDoctor
+  );
   router.get(`${RouteName.ADMIN}/doctor/:id`, verifyToken, doctorAdminController.getDoctor);
   router.post(`${RouteName.ADMIN}/doctor/filter`, verifyToken, doctorAdminController.filterDoctor);
-  router.post(`${RouteName.ADMIN}/doctor/edit`, verifyToken, doctorAdminController.editDoctor);
+  router.post(
+    `${RouteName.ADMIN}/doctor/edit`,
+    verifyToken,
+    upload.single("filename"),
+    doctorAdminController.editDoctor
+  );
   router.delete(`${RouteName.ADMIN}/doctor/:id`, verifyToken, doctorAdminController.deleteDoctor);
   router.get(
     `${RouteName.ADMIN}/doctor/get-by-clinic/:id`,
@@ -59,11 +90,13 @@ let initWebRoutes = (app) => {
   router.post(
     `${RouteName.ADMIN}/specialty/edit`,
     verifyToken,
+    upload.single("filename"),
     specialtyAdminController.editSpecialty
   );
   router.post(
     `${RouteName.ADMIN}/specialty/add-new`,
     verifyToken,
+    upload.single("filename"),
     specialtyAdminController.addNewSpecialty
   );
   router.delete(
@@ -72,10 +105,21 @@ let initWebRoutes = (app) => {
     specialtyAdminController.deleteSpecialty
   );
 
-  router.post(`${RouteName.ADMIN}/clinic/add-new`, verifyToken, clinicAdminController.addNewClinic);
+  router.post(
+    `${RouteName.ADMIN}/clinic/add-new`,
+    verifyToken,
+    upload.single("filename"),
+    clinicAdminController.addNewClinic
+  );
+  // router.post(`${RouteName.ADMIN}/clinic/add-new`, verifyToken, , clinicAdminController.addNewClinic);
   router.get(`${RouteName.ADMIN}/clinic/:id`, verifyToken, clinicAdminController.getClinic);
   router.post(`${RouteName.ADMIN}/clinic/filter`, verifyToken, clinicAdminController.filterClinic);
-  router.post(`${RouteName.ADMIN}/clinic/edit`, verifyToken, clinicAdminController.editClinic);
+  router.post(
+    `${RouteName.ADMIN}/clinic/edit`,
+    verifyToken,
+    upload.single("filename"),
+    clinicAdminController.editClinic
+  );
   router.delete(`${RouteName.ADMIN}/clinic/:id`, verifyToken, clinicAdminController.deleteClinic);
 
   router.post(
@@ -176,7 +220,12 @@ let initWebRoutes = (app) => {
     doctorController.changePasswordDoctor
   );
   router.get(`${RouteName.DOCTOR}/doctor/:id`, verifyToken, doctorController.getDetail);
-  router.put(`${RouteName.DOCTOR}/doctor/edit`, verifyToken, doctorController.editDoctor);
+  router.put(
+    `${RouteName.DOCTOR}/doctor/edit`,
+    verifyToken,
+    upload.single("filename"),
+    doctorController.editDoctor
+  );
   router.post(
     `${RouteName.DOCTOR}/schedule/by-date`,
     verifyToken,
@@ -196,6 +245,7 @@ let initWebRoutes = (app) => {
   );
   router.post(
     `${RouteName.DOCTOR}/appointment/edit`,
+    verifyToken,
     upload.single("filename"),
     appointmentDoctorController.editAppointment
   );

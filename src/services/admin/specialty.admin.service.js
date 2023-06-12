@@ -1,14 +1,16 @@
 import db from "../../models";
+import { deleteFile, uploadImage } from "../../utils/firebase-function";
 import { Label } from "../../utils/labels/label";
 import { getListData, getPageAmount } from "../../utils/pagingData";
 const { Op } = require("sequelize");
 
-const addNewSpecialty = async (specialtyData) => {
+const addNewSpecialty = async (specialtyData, file) => {
   return new Promise(async (resolve, reject) => {
     try {
+      const imageUrl = file ? await uploadImage(file) : "";
       const newSpecialty = await db.Specialty.create({
         name: specialtyData.name,
-        image: specialtyData.image,
+        image: imageUrl,
         descriptionHTML: specialtyData.descriptionHTML,
         describe: specialtyData.describe,
       });
@@ -85,7 +87,7 @@ const filterSpecialty = async (filter) => {
   });
 };
 
-const editSpecialty = async (specialtyInfo) => {
+const editSpecialty = async (specialtyInfo, file) => {
   return new Promise(async (resolve, reject) => {
     try {
       let specialty = await db.Specialty.findOne({
@@ -96,13 +98,24 @@ const editSpecialty = async (specialtyInfo) => {
           message: Label.NOT_EXISTED_SPECIALTY,
           success: false,
         });
+      } else {
+        const imageUrl = file ? await uploadImage(file) : "";
+        if (imageUrl) {
+          const oldUrl = specialty.dataValues.image;
+          if (oldUrl) {
+            await deleteFile(oldUrl);
+          }
+        }
+        const newSpecialty = await specialty.update({
+          ...specialtyInfo,
+          image: imageUrl,
+        });
+        resolve({
+          message: Label.UPDATE_SUCCESS,
+          success: true,
+          data: newSpecialty.dataValues,
+        });
       }
-      const newSpecialty = await specialty.update(specialtyInfo);
-      resolve({
-        message: Label.UPDATE_SUCCESS,
-        success: true,
-        data: newSpecialty.dataValues,
-      });
     } catch (err) {
       console.log("err", err);
       reject();
@@ -113,9 +126,14 @@ const editSpecialty = async (specialtyInfo) => {
 const deleteSpecialty = async (specialtyId) => {
   return new Promise(async (resolve, reject) => {
     try {
-      await db.Specialty.destroy({
+      const specialty = await db.Specialty.findOne({
         where: { id: specialtyId },
       });
+      const oldUrl = specialty.dataValues.image;
+      if (oldUrl) {
+        await deleteFile(oldUrl);
+      }
+      await specialty.destroy();
       resolve({
         message: Label.DELETE_SUCCESS,
         success: true,

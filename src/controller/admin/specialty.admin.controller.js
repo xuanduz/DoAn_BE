@@ -2,7 +2,7 @@ import specialtyAdminService from "../../services/admin/specialty.admin.service"
 
 const addNewSpecialty = async (req, res) => {
   try {
-    const result = await specialtyAdminService.addNewSpecialty(req.body);
+    const result = await specialtyAdminService.addNewSpecialty(req.body, req.file);
     return res.status(200).json(result);
   } catch (err) {
     console.log("err", err);
@@ -32,7 +32,7 @@ const filterSpecialty = async (req, res) => {
 
 const editSpecialty = async (req, res) => {
   try {
-    const result = await specialtyAdminService.editSpecialty(req.body);
+    const result = await specialtyAdminService.editSpecialty(req.body, req.file);
     return res.status(200).json(result);
   } catch (err) {
     console.log("err", err);

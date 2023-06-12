@@ -2,7 +2,7 @@ import doctorService from "../../services/doctor/doctor.service";
 
 const editDoctor = async (req, res) => {
   try {
-    const result = await doctorService.editDoctor(req.body);
+    const result = await doctorService.editDoctor(req.body, req.file);
     return res.status(200).json(result);
   } catch (err) {
     console.log("err", err);

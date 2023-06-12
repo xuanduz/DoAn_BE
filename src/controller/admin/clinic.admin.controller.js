@@ -2,7 +2,7 @@ import clinicAdminService from "../../services/admin/clinic.admin.service";
 
 const addNewClinic = async (req, res) => {
   try {
-    const result = await clinicAdminService.addNewClinic(req.body);
+    const result = await clinicAdminService.addNewClinic(req.body, req.file);
     return res.status(200).json(result);
   } catch (err) {
     console.log("err", err);
@@ -32,7 +32,7 @@ const filterClinic = async (req, res) => {
 
 const editClinic = async (req, res) => {
   try {
-    const result = await clinicAdminService.editClinic(req.body);
+    const result = await clinicAdminService.editClinic(req.body, req.file);
     return res.status(200).json(result);
   } catch (err) {
     console.log("err", err);
